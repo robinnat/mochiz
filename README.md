@@ -13,7 +13,7 @@ Mochiz are small animated characters for the web. One character is called a Moch
 
 You add a Mochi to any page with one HTML tag, `<mochi-bot>`. It works in plain HTML and in any framework (React, Vue, Svelte, Angular...).
 
-- 12 shapes and 18 colors, or any hex color
+- 22 shapes (a cat, a bear, a ghost, a daifuku...) and 18 colors, or any hex color
 - 3 styles, all in real 3D: Soft, Flat and Pixel
 - 7 moods, and 5 reactions (to a tap, a double tap, a long press, a shake, and a wave hello)
 - 22 accessories you can combine, in the colors you choose

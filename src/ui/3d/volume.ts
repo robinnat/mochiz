@@ -171,7 +171,7 @@ export const PROFILES: Record<string, ProfileVolume> = {
   heart: { depth: 0.85, rounded: 0.98, back: 1, cushion: true },
   // cloud: domed cushion, validated as is
   cloud: { depth: 1, rounded: 1, back: 1, cushion: true },
-  // new shapes (24/11/2026, for review). Heads with ears and the ghost: domed cushions, the lobes melt into the head
+  // shapes added on 24/11/2026. Heads with ears and the ghost: domed cushions, the lobes melt into the head
   cat: { depth: 0.9, rounded: 1, back: 1, cushion: true },
   bear: { depth: 0.9, rounded: 1, back: 1, cushion: true },
   ghost: { depth: 0.9, rounded: 1, back: 1, cushion: true },

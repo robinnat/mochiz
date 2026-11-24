@@ -21,7 +21,7 @@ import { measureLandmarks, type Landmarks } from './anchors'
 import { fieldOfIdle, bodyOutline, inflate, readMatrix, profileOf } from './volume'
 
 /**
- * Accessories by slot: the catalog is complete, each accessory builds on the 12 shapes (anchoring computed on the
+ * Accessories by slot: the catalog is complete, each accessory builds on the 22 shapes (anchoring computed on the
  * volume, not hard-coded), and all slots stack.
  */
 
@@ -115,9 +115,9 @@ describe('catalog', () => {
   })
 })
 
-describe('anchoring on the 12 shapes', () => {
-  it('there are indeed 12 shapes', () => {
-    expect(SHAPE_LIST).toHaveLength(12)
+describe('anchoring on the 22 shapes', () => {
+  it('there are indeed 22 shapes', () => {
+    expect(SHAPE_LIST).toHaveLength(22)
   })
 
   it.each(SHAPE_LIST)('%s: headwear seat in the body, neck under the eyes', (shape) => {
@@ -520,8 +520,9 @@ describe('accessories v4: simple, one or two colors, customizable (05/11/2026)',
     acc.update({ neck: 'bowtie' }, shape, mat(), () => R)
     expect(colorsOpaque(acc.group).size).toBe(1)
     const b = new Box3().setFromObject(acc.group)
-    // centered in the bottom third of the body, clearly under the former neck height
-    expect((b.min.y + b.max.y) / 2).toBeLessThan(R.neck + 0.4 * R.H)
+    // centered in the bottom third of the body, clearly under the former neck height. The gem ends in a point (a cut
+    // stone): the knot sits higher, where the body is still wide enough, but always in the lower half
+    expect((b.min.y + b.max.y) / 2).toBeLessThan(R.neck + (shape === 'gem' ? 0.5 : 0.4) * R.H)
     acc.liberer()
   })
 

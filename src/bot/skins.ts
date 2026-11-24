@@ -34,13 +34,16 @@ export type ShapeId =
   | 'flower'
   | 'egg'
   | 'heart'
-  | NewShapeId
-
-/**
- * Shapes drawn on 24/11/2026, offered for review: they work (`shape="cat"`), but stay out of `SHAPES` (the public
- * catalog, the site and the docs) until Robin picks the ones to keep (see `NEW_SHAPES`).
- */
-export type NewShapeId = 'cat' | 'bear' | 'ghost' | 'daifuku' | 'pear' | 'bean' | 'riceball' | 'gem' | 'mushroom' | 'bell'
+  | 'cat'
+  | 'bear'
+  | 'ghost'
+  | 'daifuku'
+  | 'pear'
+  | 'bean'
+  | 'riceball'
+  | 'gem'
+  | 'mushroom'
+  | 'bell'
 
 export interface BotShape {
   id: ShapeId
@@ -183,7 +186,7 @@ function ellipse(cx: number, cy: number, rx: number, ry: number, n = 160): Point
   })
 }
 
-/* ---------------------------------------------------------------- new shapes (24/11/2026, for review) */
+/* ---------------------------------------------------------------- the ten shapes added on 24/11/2026 */
 
 /** Cat: a round head, a little wider than high, and two pointed ears with soft tips. */
 const cat = normalize(
@@ -356,14 +359,8 @@ export const SHAPES: BotShape[] = [
   { id: 'star', radii: star },
   { id: 'flower', radii: flower },
   { id: 'egg', radii: egg },
-  { id: 'heart', radii: heart }
-]
-
-/**
- * New shapes (24/11/2026), for review: usable by id like the others, but not in `SHAPES` (catalog, site, docs) until
- * the ones to keep are chosen. Their eyes get the same fitting table as the catalog shapes (`eyefit.ts`).
- */
-export const NEW_SHAPES: BotShape[] = [
+  { id: 'heart', radii: heart },
+  // added on 24/11/2026
   { id: 'cat', radii: cat },
   { id: 'bear', radii: bear },
   { id: 'ghost', radii: ghost },
@@ -376,12 +373,9 @@ export const NEW_SHAPES: BotShape[] = [
   { id: 'bell', radii: bell }
 ]
 
-/** Every shape the engine knows: the catalog, then the new shapes under review. */
-export const ALL_SHAPES: BotShape[] = [...SHAPES, ...NEW_SHAPES]
-
 // Map keyed by `string`, not `ShapeId`: callers query with
 // a value read back from localStorage or a prop, so not validated.
-export const SHAPE_BY_ID = new Map<string, BotShape>(ALL_SHAPES.map((s) => [s.id, s]))
+export const SHAPE_BY_ID = new Map<string, BotShape>(SHAPES.map((s) => [s.id, s]))
 export const DEFAULT_SHAPE = 'circle'
 
 export type ColorId =

@@ -38,7 +38,8 @@ describe('nouvelles shapes', () => {
       expect(Math.max(...radii)).toBeGreaterThan(1)
       expect(Math.max(...radii)).toBeLessThan(1.15)
     }
-    expect(SHAPES.map((s) => s.id).slice(-4)).toEqual(freshOnes)
+    // they close the first twelve; the ten shapes of 24/11/2026 come after them
+    expect(SHAPES.map((s) => s.id).slice(8, 12)).toEqual(freshOnes)
   })
 
   it("the star has five branches, one up", () => {

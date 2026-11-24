@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BotEngine } from '@/bot/engine'
 import { HALF_VIEWBOX, RADIUS } from '@/bot/frame'
-import { ALL_SHAPES } from '@/bot/skins'
+import { SHAPES } from '@/bot/skins'
 import {
   aireSignee,
   RINGS,
@@ -31,7 +31,7 @@ import {
  */
 
 const image = (shape = 'circle', t = 0.5) =>
-  new BotEngine(RADIUS, 'idle', ALL_SHAPES.find((s) => s.id === shape)!.radii, null).sample(t)
+  new BotEngine(RADIUS, 'idle', SHAPES.find((s) => s.id === shape)!.radii, null).sample(t)
 
 describe('outline read off the bodyPath', () => {
   it('follows the curve: 64 cubics, SUB_STEP points each, on the circle of radius 100', () => {
@@ -67,7 +67,7 @@ describe('inflation', () => {
   })
 
   it('closes the body (up to texture seams) and turns the faces towards the viewer', () => {
-    for (const shape of ALL_SHAPES) {
+    for (const shape of SHAPES) {
       const pts = bodyOutline(image(shape.id).bodyPath)
       const v = inflate(pts, HALF_VIEWBOX, undefined, undefined, profileOf(shape.id))
       expect(v.positions.length).toBe(vertices(pts.length) * 3)
@@ -104,7 +104,8 @@ describe('inflation', () => {
         expect(ax * by - ay * bx, shape.id).toBeGreaterThan(0)
       }
     }
-  })
+    // 22 shapes: several seconds under a loaded machine, more than the default 5 s
+  }, 30_000)
 
   it('the wall faces outwards (horizontal normal, outwards)', () => {
     const pts = bodyOutline(image('squircle').bodyPath)
@@ -156,7 +157,7 @@ describe('inflation', () => {
     expect(verticesAtMax.length).toBeGreaterThan(pts.length)
   })
 
-  it.each(ALL_SHAPES.map((s) => s.id))('%s: depth at least 0.4 times the width (0.6 for non extruded bodies)', (id) => {
+  it.each(SHAPES.map((s) => s.id))('%s: depth at least 0.4 times the width (0.6 for non extruded bodies)', (id) => {
     const pts = bodyOutline(image(id).bodyPath)
     const v = inflate(pts, HALF_VIEWBOX, undefined, undefined, profileOf(id))
     let x0 = Infinity
@@ -244,7 +245,7 @@ describe('eyes facing front', () => {
     expect(r).toBeLessThan(30)
   })
 
-  it.each(ALL_SHAPES.map((s) => s.id))('%s: centered, symmetric, same size, above the center, on the face', (id) => {
+  it.each(SHAPES.map((s) => s.id))('%s: centered, symmetric, same size, above the center, on the face', (id) => {
     const pts = outline(id)
     const profile = profileOf(id)
     const ys = frontEyes(pts, half(id), profile)

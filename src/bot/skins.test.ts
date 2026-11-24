@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BotEngine, type RenderedEye } from './engine'
 import { eyeOffset, FOR_TESTS } from './eyefit'
 import { EXPRESSIONS } from './expressions'
-import { ALL_SHAPES, DEFAULT_SHAPE, SHAPE_BY_ID, colorOf, isValidHex } from './skins'
+import { DEFAULT_SHAPE, SHAPES, SHAPE_BY_ID, colorOf, isValidHex } from './skins'
 import { STATES, type StateId } from './states'
 
 /**
@@ -127,7 +127,7 @@ describe('customizer shapes', () => {
   it("no shape lets an eye leave the silhouette", () => {
     const faulty: string[] = []
     for (const state of BODY_OF_BASE) {
-      for (const shape of ALL_SHAPES) {
+      for (const shape of SHAPES) {
         for (const expr of [null, ...EXPRESSIONS]) {
           const exit = overflow(state, shape.radii, expr)
           if (exit > 0.05) {
@@ -168,7 +168,7 @@ describe('customizer shapes', () => {
   it("the chosen shape does not touch the states with a measured silhouette", () => {
     for (const state of SILHOUETTE_MEASURED) {
       const bare = new BotEngine(R, state, null, null).sample(1)
-      for (const shape of ALL_SHAPES) {
+      for (const shape of SHAPES) {
         const dressed = new BotEngine(R, state, shape.radii, null).sample(1)
         expect(dressed.eyes, `${state}/${shape.id}`).toEqual(bare.eyes)
         expect(dressed.bodyPath).toBe(bare.bodyPath)
@@ -184,7 +184,7 @@ describe('customizer shapes', () => {
    */
   it('the eye size does not depend on the shape', () => {
     const sizes = new Set(
-      ALL_SHAPES.map((f) =>
+      SHAPES.map((f) =>
         new BotEngine(R, 'idle', f.radii, null)
           .sample(1)
           .eyes.map((y) => y.d)
@@ -276,7 +276,7 @@ describe('customizer shapes', () => {
      */
     expect(morphsDExpression(circle).n, 'circle: expression morphs').toBe(0)
 
-    for (const shape of ALL_SHAPES) {
+    for (const shape of SHAPES) {
       // At rest, the only thing that moves is the gaze drift. A correction that
       // followed it would make the eyes shake all the time: the most visible flaw
       // of all, and the first we had.

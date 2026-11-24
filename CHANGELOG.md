@@ -5,6 +5,13 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added (shapes)
+
+- **Ten new shapes**, for 22 in all: `cat`, `bear`, `ghost`, `daifuku`, `pear`, `bean`, `riceball`, `gem`, `mushroom`
+  and `bell`. They work like the others: real 3D volume, every style, mood, reaction and accessory, eyes always
+  inside the silhouette. `SHAPES` (entry `mochiz-world/catalog`) lists them after the first twelve, which keep their
+  order. The website shows them in the shapes grid and the customizer.
+
 ## [0.2.1] - 2026-11-11
 
 ### Added

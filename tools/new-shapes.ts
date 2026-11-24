@@ -1,18 +1,19 @@
 import { BotEngine } from '../src/bot/engine'
 import { RADIUS } from '../src/bot/frame'
-import { COLORS, NEW_SHAPES, SHAPE_BY_ID } from '../src/bot/skins'
+import { COLORS, SHAPE_BY_ID } from '../src/bot/skins'
 import { Moods, type MoodId } from '../src/bot/moods'
 import type { Material } from '../src/ui/3d/material'
 
 /**
- * Sheet of the new shapes under review (24/11/2026): each one in Soft, front and 3/4, then in Flat and Pixel, then in
+ * Sheet of the ten shapes added on 24/11/2026: each one in Soft, front and 3/4, then in Flat and Pixel, then in
  * a happy mood. `?shapes=cat,bear` limits the list. Captured with headless Chrome and the GPU.
  */
 const q = new URLSearchParams(location.search)
 const PAPER = '#f9f9f9'
 const hexOf = (id: string) => COLORS.find((c) => c.id === id)!.hex
 const PALETTE = ['orange', 'sky', 'violet', 'pink', 'apple', 'amber', 'coral', 'blue', 'red', 'turquoise']
-const list = q.get('shapes') ? q.get('shapes')!.split(',') : NEW_SHAPES.map((s) => s.id)
+const ADDED = ['cat', 'bear', 'ghost', 'daifuku', 'pear', 'bean', 'riceball', 'gem', 'mushroom', 'bell']
+const list = q.get('shapes') ? q.get('shapes')!.split(',') : ADDED
 
 let renderAvatar: typeof import('../src/ui/3d/scene3d').renderAvatar
 

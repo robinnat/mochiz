@@ -22,13 +22,24 @@ describe('site catalog', () => {
     }
   })
 
-  it('the site shows the 12 shapes, heart included, each with its color', () => {
-    expect(SHAPES_3D).toHaveLength(12)
-    expect(SHAPES_3D.map((f) => f.id).sort()).toEqual([...SHAPE_ID_LIST].sort())
+  it('the site shows the 22 shapes, in the catalog order, each with a color of the palette', () => {
+    expect(SHAPES_3D).toHaveLength(22)
+    expect(SHAPES_3D.map((f) => f.id)).toEqual(SHAPE_ID_LIST)
     expect(SHAPE_ID_LIST).toContain('heart')
     const colors = SHAPES_3D.map((f) => f.color.toLowerCase())
-    expect(new Set(colors).size).toBe(12)
+    // the first twelve keep twelve different tints
+    expect(new Set(colors.slice(0, 12)).size).toBe(12)
     for (const c of colors) expect(PALETTE_SITE.map((p) => p.hex)).toContain(c)
+  })
+
+  it('two shapes side by side or one above the other never share a color, in 6 columns and in 3', () => {
+    const colors = SHAPES_3D.map((f) => f.color.toLowerCase())
+    for (const cols of [6, 3]) {
+      colors.forEach((c, i) => {
+        if (i % cols > 0) expect(c, `${SHAPES_3D[i]!.id} left, ${cols} columns`).not.toBe(colors[i - 1])
+        if (i >= cols) expect(c, `${SHAPES_3D[i]!.id} above, ${cols} columns`).not.toBe(colors[i - cols])
+      })
+    }
   })
 
   it('the example palette: at least 12 distinct tints, readable on a light AND a dark background', () => {
