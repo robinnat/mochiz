@@ -7,6 +7,8 @@ import {
   DEFAULT_PIXEL,
   DEFAULT_RENDER_STYLE,
   RENDER_STYLES,
+  PREVIEW_STYLES,
+  materialFor,
   effectiveRenderStyle,
   effectivePixel,
   currentRenderStyle,
@@ -26,6 +28,16 @@ describe('style catalog', () => {
 
   it('only offers three styles, all real 3D: Soft, Flat, Pixel', () => {
     expect(RENDER_STYLES).toEqual(['3d', 'flat3d', 'pixel3d'])
+  })
+
+  it('accepts Plush, not offered yet: it works but stays out of the catalog until it is chosen', () => {
+    expect(PREVIEW_STYLES).toEqual(['plush'])
+    expect(isRenderStyle('plush')).toBe(true)
+    expect(RENDER_STYLES).not.toContain('plush')
+    expect(effectiveRenderStyle('plush')).toBe('plush')
+    expect(materialFor('plush', 'soft')).toBe('plush')
+    expect(materialFor('3d', 'soft')).toBe('soft')
+    expect(renderStyleSuffix('plush')).toBe('plush')
   })
 
   it("refuses old 2D styles from an old page: they fall back to Soft", () => {

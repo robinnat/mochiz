@@ -40,6 +40,7 @@ import { STATE_BY_ID, type StateId } from '@/bot/states'
 import { compose, sleepZ, type Gesture } from '@/bot/gestures'
 import { Moods, REACTION_FOR_EVENT, mustRedraw, resolveMood, type ReactionId } from '@/bot/moods'
 import { DEFAULT_MATERIAL, type Material } from '@/ui/3d/material'
+import { FUR_LEVELS, nextFurLoad, type FurLoad } from '@/ui/3d/fur'
 import { type Theme } from '@/ui/3d/theme'
 import { resolveTheme } from '@/ui/3d/currentTheme'
 import type { AccessorySelection } from '@/bot/slots'
@@ -234,7 +235,7 @@ const EVENT_FOR_PROP: Partial<Record<keyof MochiBotProps, string>> = {
 export const CADENCE_LATE_MS = 20
 export const CADENCE_HALF_MS = 8
 export const CADENCE_FULL_MS = 6
-export const cadence = { ms: -1, frame: 0, cost: 0, average: 0, interval: 1000 / 60, half: false, count: 0 }
+export const cadence = { ms: -1, frame: 0, cost: 0, average: 0, interval: 1000 / 60, half: false, count: 0, fur: { index: 0, since: 0 } as FurLoad }
 
 /** Called at the start of each Mochi's frame: a new browser frame closes the cost of the previous one. */
 export function cadenceFrame(ms: number): number {
@@ -249,6 +250,8 @@ export function cadenceFrame(ms: number): number {
     if (gap > 0 && gap < 200) cadence.interval = cadence.interval * 0.95 + Math.min(50, gap) * 0.05
     if (!cadence.half && cadence.interval > CADENCE_LATE_MS && cadence.average > CADENCE_HALF_MS) cadence.half = true
     else if (cadence.half && cadence.average < CADENCE_FULL_MS) cadence.half = false
+    // Plush: the coat gets lighter before the frame rate has to halve (`fur.ts`)
+    cadence.fur = nextFurLoad(cadence.fur, cadence.half ? cadence.average / 2 : cadence.average, ms)
   }
   cadence.ms = ms
   cadence.frame++
@@ -647,6 +650,8 @@ function mountBot(host: MochiBotElement): Internal {
     if (props.frozenAt === undefined && !driven && readyEmitted && drawnFrame === cadence.frame) return
     drawnFrame = cadence.frame
     const t0 = performance.now()
+    // a still image keeps its full coat; an animated one follows the page's load
+    m.setFurLevel(props.frozenAt === undefined ? (FUR_LEVELS[cadence.fur.index] ?? 1) : 1)
     m.renderAvatar(canvas, frame.value, ink.value, props.paper, render3dEff.value, props.shape, props.yaw + 0.3 * turnLaptop(), props.accessories ?? {}, undefined, themeEff.value, undefined, laptopScale(), props.shadow, props.shading, false, undefined, slot ?? undefined)
     cadence.cost += performance.now() - t0
     if (!readyEmitted) {

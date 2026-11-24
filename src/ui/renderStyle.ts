@@ -1,5 +1,5 @@
 /**
- * RENDER style of the bot: Soft, Flat or Pixel, all in real 3D (WebGL, `src/ui/3d/`).
+ * RENDER style of the bot: Soft, Flat, Pixel or Plush, all in real 3D (WebGL, `src/ui/3d/`).
  *
  * Only the drawing changes. The engine (`src/bot/`), its five states and all its measurements stay the same:
  * `engine.sample(t)` gives the same frame, and `mochi-bot.ts` paints it differently. Hence this module in `src/ui/`
@@ -13,23 +13,33 @@ import { ref } from '@/ui/dom/reactive'
 import { HALF_VIEWBOX, RADIUS } from '@/bot/frame'
 import { LEGACY_PIXEL_SIZES } from '@/ui/legacy'
 
-/** The three styles, all in real 3D (WebGL): `3d` (Soft), `flat3d` (Flat) and `pixel3d` (Pixel). */
-export type RenderStyleId = '3d' | 'flat3d' | 'pixel3d'
+/**
+ * The four styles, all in real 3D (WebGL): `3d` (Soft), `flat3d` (Flat), `pixel3d` (Pixel) and `plush` (Plush, the
+ * Soft body in a coat of fur).
+ */
+export type RenderStyleId = '3d' | 'flat3d' | 'pixel3d' | 'plush'
 
-/** The styles offered in the interface. */
+/** The styles offered in the interface, the catalog and the docs. */
 export const RENDER_STYLES: RenderStyleId[] = ['3d', 'flat3d', 'pixel3d']
+
+/**
+ * Styles that work (`render-style="plush"`) but are not offered yet: not in the catalog, the site or the docs until
+ * the rendering is chosen (Plush, 24/11/2026). Moving one into `RENDER_STYLES` makes it public.
+ */
+export const PREVIEW_STYLES: RenderStyleId[] = ['plush']
 
 /** Soft by default: the validated soft 3D. */
 export const DEFAULT_RENDER_STYLE: RenderStyleId = '3d'
 
-export const isRenderStyle = (v: string): v is RenderStyleId => (RENDER_STYLES as string[]).includes(v)
+export const isRenderStyle = (v: string): v is RenderStyleId =>
+  (RENDER_STYLES as string[]).includes(v) || (PREVIEW_STYLES as string[]).includes(v)
 
 /**
  * 3D material of a style: Soft = the chosen one (`soft` by default), Flat = three tones, Pixel = low resolution +
- * palette.
+ * palette, Plush = the Soft body with a coat of fur.
  */
-export const materialFor = <T extends string>(r: RenderStyleId, soft: T): T | 'toon' | 'pixel' =>
-  r === 'flat3d' ? 'toon' : r === 'pixel3d' ? 'pixel' : soft
+export const materialFor = <T extends string>(r: RenderStyleId, soft: T): T | 'toon' | 'pixel' | 'plush' =>
+  r === 'flat3d' ? 'toon' : r === 'pixel3d' ? 'pixel' : r === 'plush' ? 'plush' : soft
 
 /* ----------------------------------------------------------------- pixel art */
 
@@ -90,5 +100,5 @@ export function effectivePixel(p: string | undefined): PixelSizeId {
   return isPixelSize(v) ? v : currentPixel.value
 }
 
-/** Added to the exported file name: the real style (`3d`, `flat3d`, `pixel3d`). */
+/** Added to the exported file name: the real style (`3d`, `flat3d`, `pixel3d`, `plush`). */
 export const renderStyleSuffix = (r: RenderStyleId) => r
