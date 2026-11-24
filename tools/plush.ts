@@ -116,8 +116,8 @@ function anim() {
     // replay the events up to t (the engine is a pure function of time)
     const frame = engine(shape).sample(t, h.sample(t))
     const yaw = 0.25 * Math.sin(t * 0.8)
-    renderAvatar(off, frame, color, PAPER, (q.get('style') ?? 'plush') as Material, shape, yaw, {}, 165, 'light')
-    c.fillStyle = '#fbfbf9'
+    renderAvatar(off, frame, color, PAPER, (q.get('style') ?? 'plush') as Material, shape, yaw, {}, 165, (q.get('theme') ?? 'light') as Theme)
+    c.fillStyle = q.get('bg') ?? '#fbfbf9'
     c.fillRect(0, 0, S, S)
     c.drawImage(off, 0, 0)
   }
