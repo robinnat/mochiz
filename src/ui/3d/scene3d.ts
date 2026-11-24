@@ -236,6 +236,13 @@ export class Mochi3d {
     return m
   }
 
+  private matHidden: MeshBasicMaterial | null = null
+  /** Plush: the body mesh is not drawn (the coat draws it), but stays in the scene for its accessories. */
+  private hidden(): MeshBasicMaterial {
+    this.matHidden ??= new MeshBasicMaterial({ colorWrite: false, depthWrite: false })
+    return this.matHidden
+  }
+
   /** Body without a model: the texture alone (body color, painted eyes), no light shades it. */
   private flat(): MeshBasicMaterial {
     this.matFlat ??= new MeshBasicMaterial({ map: this.texture })
@@ -261,10 +268,11 @@ export class Mochi3d {
     this.shading = shadedFor(r, this.shadingAsked)
     // the soft top-left light belongs to the relief: on with shading, off without
     this.uSoftLight.value = this.shading && settingFlat(r)?.smooth ? 1 : 0
-    this.mesh.material = this.shading ? this.mat(r) : this.flat()
-    // Plush: the coat of fur over the body
-    if (settingFlat(r)?.fur && !this.coat) {
-      this.coat = new FurCoat(this.texture, this.textureEyes)
+    const fur = !!settingFlat(r)?.fur
+    // Plush: the coat draws the body itself (with its bead eyes); the body mesh stays, invisible, for the accessories
+    this.mesh.material = fur ? this.hidden() : this.shading ? this.mat(r) : this.flat()
+    if (fur && !this.coat) {
+      this.coat = new FurCoat()
       this.mesh.add(this.coat.group)
       // a coat made after the face was painted must see the eyes at once
       this.keyFace = ''
@@ -409,11 +417,19 @@ export class Mochi3d {
       this.keyFace = keyFace
       // flat keeps the chosen color as is (no pastel), with no eye hollow
       this.paint(eyesPainted, flat ? color : m.base, paper, m.hollow, !flat && this.theme === 'light' && this.shading, shadows, cheeks)
-      if (this.coat?.group.visible) this.coat.paintSocket(this.canvasEyes)
+      if (this.coat?.group.visible) {
+        const sockets = eyesPainted.eyes
+          .filter((e) => e.alpha > 0.01)
+          .map((e) => {
+            const m = readMatrix(e.matrix)
+            return { d: e.d, m, alpha: e.alpha, x: m[4]!, y: m[5]!, r: halfExtentEye(e.d, e.matrix) }
+          })
+        this.coat.paintSockets(sockets)
+      }
     }
     if (this.coat?.group.visible) {
       if (this.withoutBody) this.coat.group.visible = false
-      else this.coat.update(mt.geo, mat.opacity, this.pxByUnit, furLevel)
+      else this.coat.update(mt.geo, color, mat.opacity, this.pxByUnit, furLevel)
     }
   }
 

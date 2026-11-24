@@ -1,68 +1,65 @@
 /**
- * The Plush coat: settings and the pure parts of the fur (no Three.js here, so they run under Node).
+ * The Plush coat (v2, 24/11/2026): settings and the pure parts of the fur (no Three.js here, so they run under Node).
  *
- * How the coat is drawn (`furCoat.ts`): the body mesh is drawn again a few times, each copy ("shell") pushed a little
- * further out along the normals and combed down. A shell only keeps the points where a lock of fur is tall enough to
- * reach it, so the stack of shells reads as a dense, short pile. The locks come from a 3D noise ANCHORED ON THE BODY
- * (model space), smeared along the comb direction, so they look brushed and never like dots. A few thousand thin
- * strands, rooted on the surface, add a soft fringe on the silhouette. Everything follows the engine's frame: the
- * shells reuse the body geometry of the frame, the strand roots are re-read from it every frame.
- *
- * Units are engine units (a Mochi is about 200 across, `RADIUS` 100).
+ * The technique is open-bot-avatar's "fluffy" material (Dominik Scholz, MIT License, see LICENSE), ported to our
+ * Three.js scene (`furCoat.ts`): the body drawn with the eyes seated in it, a few shells of pile lifted off it, and tens
+ * of thousands of single strands over the WHOLE body, all reading the same model-space pile, so the coat holds
+ * together as the Mochi turns. What differs: our body changes every frame (breathing, squash, morph), so the strands
+ * are rooted on triangles of the body mesh and read their position from it on the GPU every frame; and the detail also
+ * follows the page's load (`FUR_LEVELS`).
  */
-
-/** The coat at full detail. */
-export interface FurSetting {
-  /** height of the pile, engine units */
-  length: number
-  /** shells of pile above the undercoat */
-  shells: number
-  /** fringe strands at full detail */
-  strands: number
-  /** strand width at the root, engine units */
-  strandWidth: number
-  /** strand length, as a multiple of the pile height (min, max) */
-  strandLength: [number, number]
-}
-
-/** Chosen by eye on the shapes sheet (24/11/2026): a short, dense pile; about 3 % of the body's width. */
-export const FUR: FurSetting = {
-  length: 6,
-  shells: 10,
-  strands: 2800,
-  strandWidth: 0.7,
-  strandLength: [1.1, 1.9]
-}
 
 /**
- * Pixels per engine unit at which the coat is drawn in full. Below, a Mochi gets fewer shells and fewer, wider strands
- * (covering the same), and a softer fine grain: the pile would be finer than the pixels that show it.
+ * Scale between our engine units and open-bot-avatar's (a 100-unit viewBox, a body about 77 wide): a Mochi is 200
+ * wide. Their shader runs in their units, so the pile has their proportions.
  */
-export const FULL_DETAIL = 1.4
+export const FUR_SCALE = 2.6
+
+/** The coat at full detail, in THEIR units (see `FUR_SCALE`). */
+export const FUR = {
+  /** shells of pile between the body and the strands */
+  shells: 5,
+  /** hair roots per square unit of surface */
+  density: 3.3,
+  /** roots are drawn in this many interleaved passes: a small Mochi draws only some of them, wider */
+  passes: 8,
+  /** pixels per unit from which the coat is drawn in full (a 128 px avatar on a 2x display, for them) */
+  fullDetail: 2.56,
+  /** how far around an eye the coat is pressed down */
+  socketPad: 3.8,
+  /**
+   * Share of the strands drawn at full detail (not in the original, which renders a coat once per view; we draw every
+   * frame): the others are covered by drawing these wider, as their own level of detail does.
+   */
+  strandShare: 0.5
+}
 
 export interface FurDetail {
   shells: number
-  strands: number
+  /** roots drawn, out of `FUR.passes` passes */
+  passes: number
+  /** width of a strand: as much wider as there are fewer */
   strandWidth: number
-  /** weight of the fine fiber grain (0..1): it fades on small Mochiz, where it would only shimmer */
-  grain: number
 }
 
 /**
- * How much of the coat to draw at `pxPerUnit` (device) pixels per engine unit, under the page's load `level` (1 = full,
- * see `FUR_LEVELS`): fewer shells and strands when many Mochiz are drawn or frames come late.
+ * How much of the coat to draw at `pxPerUnit` (device) pixels per OUR unit, under the page's load `level` (1 = full,
+ * see `FUR_LEVELS`). Ported from open-bot-avatar's `fluffyDetail`: a small avatar gets fewer shells and a share of
+ * its strands, each widened by as much, so they cover the same; the load level takes a further share.
  */
-export function furDetail(pxPerUnit: number, level = 1, fur: FurSetting = FUR): FurDetail {
-  const d = Math.max(0, Math.min(1, pxPerUnit / FULL_DETAIL))
-  const share = Math.max(0.25, Math.sqrt(d)) * level
-  const strands = Math.round(fur.strands * share)
-  return {
-    shells: Math.max(3, Math.ceil(fur.shells * d * level)),
-    strands,
-    // fewer strands, each wider by as much, so the fringe covers about the same
-    strandWidth: fur.strandWidth * Math.min(2, fur.strands / Math.max(1, strands)),
-    grain: Math.max(0, Math.min(1, (d - 0.35) / 0.5))
-  }
+export function furDetail(pxPerUnit: number, level = 1): FurDetail {
+  const detail = Math.min(1, (pxPerUnit * FUR_SCALE) / FUR.fullDetail)
+  const shells = Math.max(2, Math.ceil(FUR.shells * detail * level))
+  // by the root, not in proportion: strands that get much wider show as wisps along the outline
+  const passes = Math.max(1, Math.ceil(FUR.passes * FUR.strandShare * Math.sqrt(detail) * level))
+  return { shells, passes, strandWidth: FUR.passes / passes }
+}
+
+/** How many of `total` roots the first `passes` passes hold (roots are stored pass after pass). */
+export function rootsIn(total: number, passes: number): number {
+  let count = 0
+  for (let pass = 0; pass < passes; pass++) count += Math.max(0, Math.ceil((total - pass) / FUR.passes))
+  return count
 }
 
 /**
@@ -72,8 +69,8 @@ export function furDetail(pxPerUnit: number, level = 1, fur: FurSetting = FUR): 
  * per `FUR_STEP_MS`, so the density never flickers.
  */
 export const FUR_LEVELS = [1, 0.6, 0.35]
-export const FUR_DOWN_MS = 5
-export const FUR_UP_MS = 2.5
+export const FUR_DOWN_MS = 7
+export const FUR_UP_MS = 3.5
 export const FUR_STEP_MS = 1500
 
 export interface FurLoad {
@@ -103,15 +100,21 @@ export function seeded(seed: number): () => number {
   }
 }
 
-/** Side of the noise cube the locks are read from. */
-export const NOISE_SIDE = 32
+/** Side of the cube of root density the pile is read from. */
+export const ROOT_SIDE = 64
 
-/** A cube of random bytes (`side`^3), tiling: sampled with linear filtering it is a smooth value noise. */
-export function noiseVolume(side = NOISE_SIDE, seed = 7): Uint8Array {
-  const r = seeded(seed)
-  const out = new Uint8Array(side * side * side)
-  for (let i = 0; i < out.length; i++) out[i] = Math.floor(r() * 256)
-  return out
+/**
+ * Random root density in a repeating cube: a volume has no UV seams or poles. Same generator and seed as
+ * open-bot-avatar's `rootVolume` (MIT, Dominik Scholz).
+ */
+export function rootVolume(side = ROOT_SIDE): Uint8Array {
+  const roots = new Uint8Array(side ** 3)
+  let seed = 73021
+  for (let i = 0; i < roots.length; i++) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
+    roots[i] = seed >>> 24
+  }
+  return roots
 }
 
 /**
@@ -179,90 +182,23 @@ export function pickRoots(pos: ArrayLike<number>, index: ArrayLike<number>, coun
   return { corners, weights, seeds, count }
 }
 
-/**
- * Reads the roots off a frame's mesh: position, normal (normalized) and texture coordinates, into the strand
- * instance arrays (`root` 3, `normal` 3, `uv` 2 floats per strand). Only the first `n` roots.
- */
-export function placeRoots(
-  pick: RootPick,
-  n: number,
-  pos: ArrayLike<number>,
-  nor: ArrayLike<number>,
-  uv: ArrayLike<number>,
-  root: Float32Array,
-  normal: Float32Array,
-  uvOut: Float32Array
-) {
-  const m = Math.min(n, pick.count)
-  const C = pick.corners
-  const W = pick.weights
-  for (let i = 0; i < m; i++) {
-    const a = C[3 * i]!
-    const b = C[3 * i + 1]!
-    const c = C[3 * i + 2]!
-    const wa = W[3 * i]!
-    const wb = W[3 * i + 1]!
-    const wc = W[3 * i + 2]!
-    let nx = 0
-    let ny = 0
-    let nz = 0
-    for (let k = 0; k < 3; k++) {
-      root[3 * i + k] = wa * pos[3 * a + k]! + wb * pos[3 * b + k]! + wc * pos[3 * c + k]!
-    }
-    nx = wa * nor[3 * a]! + wb * nor[3 * b]! + wc * nor[3 * c]!
-    ny = wa * nor[3 * a + 1]! + wb * nor[3 * b + 1]! + wc * nor[3 * c + 1]!
-    nz = wa * nor[3 * a + 2]! + wb * nor[3 * b + 2]! + wc * nor[3 * c + 2]!
-    const l = Math.hypot(nx, ny, nz) || 1
-    normal[3 * i] = nx / l
-    normal[3 * i + 1] = ny / l
-    normal[3 * i + 2] = nz / l
-    uvOut[2 * i] = wa * uv[2 * a]! + wb * uv[2 * b]! + wc * uv[2 * c]!
-    uvOut[2 * i + 1] = wa * uv[2 * a + 1]! + wb * uv[2 * b + 1]! + wc * uv[2 * c + 1]!
+/** Area of a triangle mesh (positions, indices), in square units of the positions. */
+export function surfaceArea(pos: ArrayLike<number>, index: ArrayLike<number>): number {
+  let total = 0
+  for (let t = 0; t + 2 < index.length; t += 3) {
+    const a = index[t]! * 3
+    const b = index[t + 1]! * 3
+    const c = index[t + 2]! * 3
+    const ux = pos[b]! - pos[a]!
+    const uy = pos[b + 1]! - pos[a + 1]!
+    const uz = pos[b + 2]! - pos[a + 2]!
+    const vx = pos[c]! - pos[a]!
+    const vy = pos[c + 1]! - pos[a + 1]!
+    const vz = pos[c + 2]! - pos[a + 2]!
+    total += Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx) / 2
   }
+  return total
 }
 
-/**
- * Comb direction at a point of the body (model space, y up): mostly DOWN, opening outwards on the sides, with a slow
- * wave so the coat is not combed with a ruler; then flattened onto the surface (tangent to it). Unit length. The
- * shader has the same function (`COMB_GLSL`); this twin is for the tests.
- */
-export function combDirection(p: [number, number, number], n: [number, number, number]): [number, number, number] {
-  const r = Math.max(1, Math.hypot(p[0], p[1]))
-  const wave = 0.35 * Math.sin(0.045 * p[0] + 0.03 * p[2]) + 0.25 * Math.sin(0.05 * p[1] - 0.035 * p[2])
-  let cx = (0.55 * p[0]) / r + wave
-  let cy = -1
-  let cz = 0
-  const d = cx * n[0] + cy * n[1] + cz * n[2]
-  cx -= n[0] * d
-  cy -= n[1] * d
-  cz -= n[2] * d
-  const l = Math.hypot(cx, cy, cz)
-  // at the very bottom the normal points down and nothing is left: comb outwards instead
-  if (l < 1e-3) {
-    const ox = p[0] / r
-    const oy = p[1] / r
-    const e = ox * n[0] + oy * n[1]
-    const fx = ox - n[0] * e
-    const fy = oy - n[1] * e
-    const fz = -n[2] * e
-    const fl = Math.hypot(fx, fy, fz) || 1
-    return [fx / fl, fy / fl, fz / fl]
-  }
-  return [cx / l, cy / l, cz / l]
-}
-
-/** GLSL twin of `combDirection`. */
-export const COMB_GLSL = /* glsl */ `
-vec3 furComb(vec3 p, vec3 n) {
-  float r = max(1.0, length(p.xy));
-  float wave = 0.35 * sin(0.045 * p.x + 0.03 * p.z) + 0.25 * sin(0.05 * p.y - 0.035 * p.z);
-  vec3 c = vec3(0.55 * p.x / r + wave, -1.0, 0.0);
-  c -= n * dot(n, c);
-  float l = length(c);
-  if (l < 1e-3) {
-    vec3 o = vec3(p.xy / r, 0.0);
-    o -= n * dot(n, o);
-    return normalize(o + vec3(1e-4));
-  }
-  return c / l;
-}`
+/** Strands for a body of `area` square OUR units: `FUR.density` per square unit of theirs. */
+export const rootCount = (area: number) => Math.round((area / FUR_SCALE ** 2) * FUR.density)

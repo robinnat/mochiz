@@ -150,7 +150,13 @@ async function bench() {
 
 ;(async () => {
   ;({ renderAvatar } = await import('../src/ui/3d/scene3d'))
-  if (mode === 'sheet') await sheet()
+  if (mode === 'single') {
+    // one Mochi on a transparent canvas: ?shape=&color=&style=&yaw=&theme=&size=&t=
+    const cv = tile(q.get('shape') ?? 'capsule', hexOf(q.get('color') ?? 'red'), (q.get('style') ?? 'plush') as Material, Number(q.get('yaw') ?? 0), Number(q.get('t') ?? 0.6), Number(q.get('size') ?? 520), (q.get('theme') ?? 'dark') as Theme)
+    cv.id = 'out'
+    document.body.style.background = q.get('bg') ?? ((q.get('theme') ?? 'dark') === 'dark' ? '#121212' : '#fbfbf9')
+    document.body.appendChild(cv)
+  } else if (mode === 'sheet') await sheet()
   else if (mode === 'anim') anim()
   else await bench()
   document.body.dataset.done = '1'

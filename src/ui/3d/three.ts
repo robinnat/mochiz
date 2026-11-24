@@ -54,10 +54,15 @@ export { TorusGeometry } from 'three/src/geometries/TorusGeometry.js'
 export { TubeGeometry } from 'three/src/geometries/TubeGeometry.js'
 export {
   BackSide,
+  ClampToEdgeWrapping,
   DoubleSide,
+  FloatType,
   LinearFilter,
+  LinearMipmapLinearFilter,
   NearestFilter,
+  NoColorSpace,
   RedFormat,
+  RGBAFormat,
   RepeatWrapping,
   SRGBColorSpace,
   TriangleFanDrawMode,

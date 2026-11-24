@@ -1,57 +1,69 @@
 import { describe, expect, it } from 'vitest'
 import {
-  COMB_GLSL,
-  combDirection,
-  FULL_DETAIL,
   FUR,
   FUR_DOWN_MS,
   FUR_LEVELS,
+  FUR_SCALE,
   FUR_STEP_MS,
   FUR_UP_MS,
   furDetail,
   nextFurLoad,
-  NOISE_SIDE,
-  noiseVolume,
   pickRoots,
-  placeRoots
+  rootCount,
+  rootsIn,
+  ROOT_SIDE,
+  rootVolume,
+  surfaceArea
 } from './fur'
-import { RADIUS } from '@/bot/frame'
+import { DYE_RAMP_RANGE, DYE_RAMP_SIZE, dyeRamp, oklch, rgbOf, toOklch } from './furDye'
+import { exposedHeight, signedField, socketRect } from './furSocket'
 
-/** The Plush coat (24/11/2026): the pure parts, run under Node. Shaders and meshes are in `furCoat.ts`. */
+/**
+ * The Plush coat v2 (24/11/2026, technique of open-bot-avatar's "fluffy", MIT, Dominik Scholz): the pure parts, run
+ * under Node. Shaders and meshes are in `furCoat.ts`.
+ */
 describe('fur settings', () => {
-  it('a short pile: a few percent of the body, with a stack of shells and a fringe of strands', () => {
-    expect(FUR.length).toBeGreaterThan(0)
-    expect(FUR.length / (2 * RADIUS)).toBeLessThan(0.06)
-    expect(FUR.shells).toBeGreaterThanOrEqual(6)
-    expect(FUR.strands).toBeGreaterThan(0)
-    expect(FUR.strandLength[0]).toBeLessThan(FUR.strandLength[1])
+  it('their proportions: a 200-wide Mochi is about as wide in their units as their avatars', () => {
+    expect(200 / FUR_SCALE).toBeGreaterThan(65)
+    expect(200 / FUR_SCALE).toBeLessThan(90)
+    expect(FUR.shells).toBe(5)
+    expect(FUR.density).toBe(3.3)
+    expect(FUR.strandShare).toBeGreaterThan(0)
+    expect(FUR.strandShare).toBeLessThanOrEqual(1)
   })
 
-  it('full detail from FULL_DETAIL pixels per unit; fewer shells and strands below, never under the floor', () => {
-    const full = furDetail(FULL_DETAIL)
+  it('full detail on a big Mochi; fewer shells and fewer, wider strands on a small one', () => {
+    const full = furDetail(10)
     expect(full.shells).toBe(FUR.shells)
-    expect(full.strands).toBe(FUR.strands)
-    expect(full.grain).toBe(1)
-    expect(furDetail(FULL_DETAIL * 3)).toEqual(full)
+    expect(full.passes).toBe(Math.ceil(FUR.passes * FUR.strandShare))
     let prev = full
-    for (const px of [1, 0.7, 0.5, 0.3, 0.1]) {
+    for (const px of [0.8, 0.5, 0.3, 0.1]) {
       const d = furDetail(px)
       expect(d.shells).toBeLessThanOrEqual(prev.shells)
-      expect(d.strands).toBeLessThanOrEqual(prev.strands)
-      // fewer strands are wider, so the fringe covers about the same
-      expect(d.strandWidth).toBeGreaterThanOrEqual(prev.strandWidth)
-      expect(d.shells).toBeGreaterThanOrEqual(3)
+      expect(d.passes).toBeLessThanOrEqual(prev.passes)
+      // fewer strands are wider: the same coverage
+      expect(d.strandWidth * d.passes).toBeCloseTo(FUR.passes, 6)
+      expect(d.shells).toBeGreaterThanOrEqual(2)
+      expect(d.passes).toBeGreaterThanOrEqual(1)
       prev = d
     }
-    expect(furDetail(0.1).grain).toBe(0)
   })
 
   it('a lower load level draws fewer shells and strands', () => {
-    const [a, b, c] = FUR_LEVELS.map((k) => furDetail(FULL_DETAIL, k))
+    const [a, b, c] = FUR_LEVELS.map((k) => furDetail(10, k))
     expect(b!.shells).toBeLessThan(a!.shells)
-    expect(c!.shells).toBeLessThan(b!.shells)
-    expect(c!.strands).toBeLessThan(b!.strands)
-    expect(c!.shells).toBeGreaterThanOrEqual(3)
+    expect(c!.shells).toBeLessThanOrEqual(b!.shells)
+    expect(c!.passes).toBeLessThan(a!.passes)
+  })
+
+  it('roots drawn in passes: a prefix of the list, the whole list at every pass', () => {
+    expect(rootsIn(800, FUR.passes)).toBe(800)
+    expect(rootsIn(800, FUR.passes / 2)).toBe(400)
+    expect(rootsIn(803, 1)).toBe(101)
+  })
+
+  it(`${FUR.density} strands per square unit of theirs`, () => {
+    expect(rootCount(FUR_SCALE ** 2 * 1000)).toBe(Math.round(1000 * FUR.density))
   })
 })
 
@@ -60,35 +72,37 @@ describe('fur load level', () => {
     let l = { index: 0, since: -1e9 }
     l = nextFurLoad(l, FUR_DOWN_MS + 1, 0)
     expect(l.index).toBe(1)
-    // too soon for another step
     expect(nextFurLoad(l, FUR_DOWN_MS + 10, FUR_STEP_MS / 2).index).toBe(1)
     l = nextFurLoad(l, FUR_DOWN_MS + 1, FUR_STEP_MS)
     expect(l.index).toBe(2)
-    // never past the last level
     expect(nextFurLoad(l, 40, 10 * FUR_STEP_MS).index).toBe(FUR_LEVELS.length - 1)
-    // between the two thresholds nothing moves (no flicker)
     expect(nextFurLoad(l, (FUR_UP_MS + FUR_DOWN_MS) / 2, 10 * FUR_STEP_MS)).toBe(l)
-    l = nextFurLoad(l, FUR_UP_MS - 1, 10 * FUR_STEP_MS)
-    expect(l.index).toBe(1)
+    expect(nextFurLoad(l, FUR_UP_MS - 1, 10 * FUR_STEP_MS).index).toBe(1)
+  })
+
+  it('a single Mochi in full detail (about 5 ms with its sync) does not lower the coat', () => {
+    expect(FUR_DOWN_MS).toBeGreaterThan(6)
   })
 })
 
-describe('noise', () => {
-  it('is a seeded cube: the same coat on every page load', () => {
-    const a = noiseVolume()
-    expect(a).toHaveLength(NOISE_SIDE ** 3)
-    expect(noiseVolume()).toEqual(a)
-    expect(noiseVolume(NOISE_SIDE, 8)).not.toEqual(a)
+describe('root volume', () => {
+  it('is seeded: the same coat on every page load', () => {
+    const a = rootVolume()
+    expect(a).toHaveLength(ROOT_SIDE ** 3)
+    expect(rootVolume()).toEqual(a)
     const mean = a.reduce((s, v) => s + v, 0) / a.length
-    expect(mean).toBeGreaterThan(110)
-    expect(mean).toBeLessThan(145)
+    expect(mean).toBeGreaterThan(115)
+    expect(mean).toBeLessThan(140)
   })
 })
 
 describe('strand roots', () => {
-  // two triangles, the second 3 times larger
   const pos = [0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0, 0, 13, 0, 0, 10, 2, 0]
   const index = [0, 1, 2, 3, 4, 5]
+
+  it('area of a mesh', () => {
+    expect(surfaceArea(pos, index)).toBeCloseTo(3.5, 6)
+  })
 
   it('are spread by area, inside their triangle, the same every time', () => {
     const p = pickRoots(pos, index, 4000)
@@ -99,59 +113,62 @@ describe('strand roots', () => {
       expect(w.every((x) => x >= -1e-6)).toBe(true)
       expect(w[0]! + w[1]! + w[2]!).toBeCloseTo(1, 5)
     }
-    // areas 0.5 and 3: about 6 roots out of 7 in the big one
     expect(big / p.count).toBeGreaterThan(0.82)
     expect(big / p.count).toBeLessThan(0.89)
     expect(pickRoots(pos, index, 4000).weights).toEqual(p.weights)
   })
+})
 
-  it('are read back from a later frame of the same mesh (they move with it)', () => {
-    const p = pickRoots(pos, index, 50)
-    const nor = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 2, 0, 0, 2, 0, 0, 2]
-    const uv = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
-    const root = new Float32Array(150)
-    const normal = new Float32Array(150)
-    const uvOut = new Float32Array(100)
-    // the mesh moved up by 5
-    const moved = pos.map((v, i) => (i % 3 === 1 ? v + 5 : v))
-    placeRoots(p, 50, moved, nor, uv, root, normal, uvOut)
-    for (let i = 0; i < 50; i++) {
-      expect(root[3 * i + 1]!).toBeGreaterThanOrEqual(5 - 1e-5)
-      expect(Math.hypot(normal[3 * i]!, normal[3 * i + 1]!, normal[3 * i + 2]!)).toBeCloseTo(1, 5)
-      expect(uvOut[2 * i]! + uvOut[2 * i + 1]!).toBeLessThanOrEqual(1 + 1e-5)
+describe('dye ramp', () => {
+  it('one row of colors per dye, from dark to bright, its own color near exposure 1', () => {
+    const red = rgbOf('#ff3b30')
+    const ramp = dyeRamp(red)
+    expect(ramp).toHaveLength(DYE_RAMP_SIZE * 4)
+    const L = (i: number) => toOklch([ramp[i * 4]!, ramp[i * 4 + 1]!, ramp[i * 4 + 2]!])[0]
+    for (let i = 1; i < DYE_RAMP_SIZE; i++) expect(L(i)).toBeGreaterThanOrEqual(L(i - 1) - 1e-3)
+    const one = Math.floor(DYE_RAMP_SIZE / DYE_RAMP_RANGE)
+    const at = toOklch([ramp[one * 4]!, ramp[one * 4 + 1]!, ramp[one * 4 + 2]!])
+    const own = toOklch(red)
+    expect(Math.abs(at[2] - own[2])).toBeLessThan(6)
+    expect(Math.abs(at[0] - own[0])).toBeLessThan(0.06)
+  })
+
+  it('yellows keep their separate response, blues do not', () => {
+    expect(dyeRamp(rgbOf('#ffd60a'))[3]).toBeGreaterThan(100)
+    expect(dyeRamp(rgbOf('#2d5bff'))[3]).toBe(0)
+  })
+
+  it('OKLCH round trip', () => {
+    for (const c of [rgbOf('#ff3b30'), rgbOf('#00c46a'), rgbOf('#8b3dff')]) {
+      const [l, ch, h] = toOklch(c)
+      const back = oklch(l, ch, h)
+      for (let k = 0; k < 3; k++) expect(Math.abs(back[k]! - c[k]!)).toBeLessThan(1.5)
     }
   })
 })
 
-describe('comb', () => {
-  const norm = (v: number[]) => Math.hypot(...v)
-  it('is a unit direction lying on the surface, combed down on the front and the sides', () => {
-    const cases: Array<[[number, number, number], [number, number, number]]> = [
-      [[0, 0, 60], [0, 0, 1]],
-      [[40, 20, 40], [0.6, 0.3, 0.74]],
-      [[-80, -10, 0], [-1, 0, 0]],
-      [[0, 90, 10], [0, 0.99, 0.14]]
-    ]
-    for (const [p, n0] of cases) {
-      const l = norm(n0)
-      const n = n0.map((v) => v / l) as [number, number, number]
-      const c = combDirection(p, n)
-      expect(norm(c)).toBeCloseTo(1, 5)
-      expect(Math.abs(c[0] * n[0] + c[1] * n[1] + c[2] * n[2])).toBeLessThan(1e-6)
-    }
-    expect(combDirection([0, 0, 60], [0, 0, 1])[1]).toBeLessThan(-0.8)
-    expect(combDirection([-80, -10, 0], [-1, 0, 0])[1]).toBeLessThan(-0.8)
+describe('eye sockets', () => {
+  it('signed distance: below 0.5 inside an eye, above outside, growing away from it', () => {
+    const w = 40
+    const h = 20
+    const cov = new Uint8Array(w * h)
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if ((x - 10) ** 2 + (y - 10) ** 2 < 25) cov[y * w + x] = 255
+    const f = signedField(cov, w, h, 0.5, 3.8)
+    expect(f[10 * w + 10]!).toBeLessThan(128)
+    expect(f[10 * w + 20]!).toBeGreaterThan(128)
+    expect(f[10 * w + 20]!).toBeGreaterThanOrEqual(f[10 * w + 17]!)
   })
 
-  it('still has a direction at the very bottom, where the normal points straight down', () => {
-    const c = combDirection([30, -100, 0], [0, -1, 0])
-    expect(norm(c)).toBeCloseTo(1, 5)
-    expect(Math.abs(c[1])).toBeLessThan(1e-6)
+  it('the field box holds both eyes and is twice as wide as high', () => {
+    const r = socketRect([{ x: -20, y: -10, r: 12 }, { x: 22, y: -10, r: 12 }], 10)!
+    expect(r.w).toBeCloseTo(2 * r.h, 6)
+    expect(r.x0).toBeLessThanOrEqual(-42)
+    expect(r.x0 + r.w).toBeGreaterThanOrEqual(44)
+    expect(socketRect([], 10)).toBeNull()
   })
 
-  it('the shader uses the same formula', () => {
-    for (const bit of ['0.55 * p.x / r', '0.045 * p.x + 0.03 * p.z', '0.05 * p.y - 0.035 * p.z', 'vec3(0.55 * p.x / r + wave, -1.0, 0.0)']) {
-      expect(COMB_GLSL).toContain(bit)
-    }
+  it('an open bead is partly buried in the pile', () => {
+    expect(exposedHeight(10, 10)).toBeCloseTo(0.8, 6)
+    expect(exposedHeight(10, 25)).toBeCloseTo(0.625, 6)
   })
 })
