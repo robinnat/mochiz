@@ -4,6 +4,7 @@ import { FIGURES } from './catalog'
 import { ACCESSORIES } from '@/bot/slots'
 import { MOOD_IDS } from '@/bot/moods'
 import { SHAPES } from '@/bot/skins'
+import { RENDER_STYLES } from '@/ui/renderStyle'
 
 const folder = new URL('./', import.meta.url)
 const pages = readdirSync(folder).filter((f) => /^[A-Z].*\.ts$/.test(f))
@@ -19,7 +20,8 @@ describe('site v10', () => {
     expect(v.shapes).toBe(SHAPES.length)
     expect(v.moods).toBe(MOOD_IDS.length)
     expect(v.accessories).toBe(ACCESSORIES.length)
-    expect(v['3D styles']).toBe(3)
+    expect(v['3D styles']).toBe(RENDER_STYLES.length)
+    expect(RENDER_STYLES.length).toBe(4)
   })
 
   it('motion goes through transform/opacity and respects prefers-reduced-motion', () => {

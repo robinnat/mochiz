@@ -29,11 +29,11 @@ const VB_TEST = HALF_VIEWBOX
 describe('material list', () => {
   it('the default is soft (design choice, 03/11), flat stays in the code, realistic stays available', () => {
     expect(DEFAULT_MATERIAL).toBe('soft')
-    expect(MATERIALS).toEqual(['realistic', 'toon', 'toon-outline', 'lowpoly', 'flat', 'soft', 'pixel'])
+    expect(MATERIALS).toEqual(['realistic', 'toon', 'toon-outline', 'lowpoly', 'flat', 'soft', 'pixel', 'plush'])
     expect(MATERIALS.every(isMaterial)).toBe(true)
     expect(isMaterial('plastic')).toBe(false)
     expect(isFlat('realistic')).toBe(false)
-    expect(MATERIALS.filter(isFlat)).toHaveLength(6)
+    expect(MATERIALS.filter(isFlat)).toHaveLength(7)
     expect(settingFlat('realistic')).toBeNull()
   })
 
@@ -44,8 +44,23 @@ describe('material list', () => {
   })
 })
 
+describe('plush (24/11/2026)', () => {
+  it('is the Soft material with a coat of fur: same tones, same smooth ramp, always shaded', () => {
+    const soft = settingFlat('soft')!
+    const plush = settingFlat('plush')!
+    expect(plush.fur).toBe(true)
+    expect(soft.fur).toBeFalsy()
+    expect(plush.tones).toEqual(soft.tones)
+    expect(plush.smooth).toEqual(soft.smooth)
+    expect(gradientMap(plush)).toEqual(gradientMap(soft))
+    expect(shadedFor('plush', false)).toBe(true)
+    // only plush wears a coat
+    expect(MATERIALS.filter((r) => settingFlat(r)?.fur)).toEqual(['plush'])
+  })
+})
+
 describe('steps and lighting', () => {
-  it.each(MATERIALS.filter((x) => isFlat(x) && x !== 'soft'))('%s: one tone more than thresholds, increasing thresholds', (r) => {
+  it.each(MATERIALS.filter((x) => isFlat(x) && !settingFlat(x)!.smooth))('%s: one tone more than thresholds, increasing thresholds', (r) => {
     const p = settingFlat(r)!
     expect(p.tones).toHaveLength(p.thresholds.length + 1)
     expect(p.thresholds).toEqual([...p.thresholds].sort((a, b) => a - b))
@@ -62,7 +77,7 @@ describe('steps and lighting', () => {
   })
 
   it('the sampled ramp rises in steps, from 0 to the lightest tone (255)', () => {
-    for (const r of MATERIALS.filter((x) => isFlat(x) && x !== 'soft')) {
+    for (const r of MATERIALS.filter((x) => isFlat(x) && !settingFlat(x)!.smooth)) {
       const g = gradientMap(settingFlat(r)!)
       expect(g).toHaveLength(32)
       expect(g[0]).toBe(0)

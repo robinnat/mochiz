@@ -40,6 +40,7 @@ import { HALF_VIEWBOX } from '@/bot/frame'
 import { mixHex } from '@/bot/skins'
 import { radiusLens, eyesOf, type Shadow } from '@/bot/eyePlacement'
 import { Accessories3d } from './accessories3d'
+import { FurCoat } from './furCoat'
 import { measureLandmarks } from './anchors'
 import type { AccessorySelection } from '@/bot/slots'
 import { rim } from './rim'
@@ -156,6 +157,10 @@ export class Mochi3d {
   private readonly thickness = { value: 4.5 }
   /** last painted outline and face: unchanged from one frame to the next, nothing is redone */
   private keyFace = ''
+  /** coat of fur of the Plush style, made on first use (`fur.ts`, `furCoat.ts`) */
+  private coat: FurCoat | null = null
+  /** (device) pixels per engine unit of the current render: sets the coat's detail */
+  private pxByUnit = 1
   /** Bottom of the body, Three space (y up): where it touches the ground. */
   neck = -100
 
@@ -231,6 +236,13 @@ export class Mochi3d {
     return m
   }
 
+  private matHidden: MeshBasicMaterial | null = null
+  /** Plush: the body mesh is not drawn (the coat draws it), but stays in the scene for its accessories. */
+  private hidden(): MeshBasicMaterial {
+    this.matHidden ??= new MeshBasicMaterial({ colorWrite: false, depthWrite: false })
+    return this.matHidden
+  }
+
   /** Body without a model: the texture alone (body color, painted eyes), no light shades it. */
   private flat(): MeshBasicMaterial {
     this.matFlat ??= new MeshBasicMaterial({ map: this.texture })
@@ -256,7 +268,16 @@ export class Mochi3d {
     this.shading = shadedFor(r, this.shadingAsked)
     // the soft top-left light belongs to the relief: on with shading, off without
     this.uSoftLight.value = this.shading && settingFlat(r)?.smooth ? 1 : 0
-    this.mesh.material = this.shading ? this.mat(r) : this.flat()
+    const fur = !!settingFlat(r)?.fur
+    // Plush: the coat draws the body itself (with its bead eyes); the body mesh stays, invisible, for the accessories
+    this.mesh.material = fur ? this.hidden() : this.shading ? this.mat(r) : this.flat()
+    if (fur && !this.coat) {
+      this.coat = new FurCoat()
+      this.mesh.add(this.coat.group)
+      // a coat made after the face was painted must see the eyes at once
+      this.keyFace = ''
+    }
+    if (this.coat) this.coat.group.visible = !!settingFlat(r)?.fur
     // the inverted shell only belongs to the internal `toon-outline` material (out of the public styles)
     this.shell.visible = !!settingFlat(r)?.outline
   }
@@ -267,6 +288,7 @@ export class Mochi3d {
    */
   fitOutline(pxByUnit: number) {
     const diameter = 2 * 100 * pxByUnit
+    this.pxByUnit = pxByUnit
     this.thickness.value = outlineWidthPx(diameter) / Math.max(1e-6, pxByUnit)
   }
 
@@ -395,6 +417,19 @@ export class Mochi3d {
       this.keyFace = keyFace
       // flat keeps the chosen color as is (no pastel), with no eye hollow
       this.paint(eyesPainted, flat ? color : m.base, paper, m.hollow, !flat && this.theme === 'light' && this.shading, shadows, cheeks)
+      if (this.coat?.group.visible) {
+        const sockets = eyesPainted.eyes
+          .filter((e) => e.alpha > 0.01)
+          .map((e) => {
+            const m = readMatrix(e.matrix)
+            return { d: e.d, m, alpha: e.alpha, x: m[4]!, y: m[5]!, r: halfExtentEye(e.d, e.matrix) }
+          })
+        this.coat.paintSockets(sockets)
+      }
+    }
+    if (this.coat?.group.visible) {
+      if (this.withoutBody) this.coat.group.visible = false
+      else this.coat.update(mt.geo, color, mat.opacity, this.pxByUnit, furLevel)
     }
   }
 
@@ -613,6 +648,7 @@ export class Mochi3d {
     this.acc3d.liberer()
     this.texture.dispose()
     this.textureEyes.dispose()
+    this.coat?.dispose()
   }
 }
 
@@ -831,6 +867,12 @@ export function light(scene: Scene, r: Material = DEFAULT_MATERIAL): Directional
 
 /* ------------------------------------------------------------- avatar */
 
+/** Load level of the Plush coat for the whole page (`FUR_LEVELS`), set by the component from its cadence. */
+let furLevel = 1
+export function setFurLevel(level: number) {
+  furLevel = level
+}
+
 /**
  * A single WebGL context for every avatar of the page: a browser opens about fifteen at most, and the sheet or the
  * timeline mount far more thumbnails. Each avatar asks for a frame, we render it here then copy it into ITS 2D
@@ -920,7 +962,7 @@ export function warmUp() {
   const { renderer, scene, camera, mochi } = ctx3
   install(ctx3, mochi)
   const before = ctx3.renderStyle
-  const trials: Material[] = ['soft', 'toon', 'pixel']
+  const trials: Material[] = ['soft', 'toon', 'pixel', 'plush']
   for (const r of trials) {
     for (const x of ctx3.lights) scene.remove(x)
     const l = lights(r)

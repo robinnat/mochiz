@@ -21,9 +21,9 @@
 
 import { DEFAULT_FINESSE, type Finesse } from './volume'
 
-export type Material = 'realistic' | 'toon' | 'toon-outline' | 'lowpoly' | 'flat' | 'soft' | 'pixel'
+export type Material = 'realistic' | 'toon' | 'toon-outline' | 'lowpoly' | 'flat' | 'soft' | 'pixel' | 'plush'
 
-export const MATERIALS: Material[] = ['realistic', 'toon', 'toon-outline', 'lowpoly', 'flat', 'soft', 'pixel']
+export const MATERIALS: Material[] = ['realistic', 'toon', 'toon-outline', 'lowpoly', 'flat', 'soft', 'pixel', 'plush']
 
 export const DEFAULT_MATERIAL: Material = 'soft'
 
@@ -62,6 +62,11 @@ export interface SettingFlat {
    * Absent: steps (the other materials).
    */
   smooth?: { from: number; a: number }
+  /**
+   * a coat of fur over the body (`plush` material): shells of pile and fringe strands (`fur.ts`, `furCoat.ts`). The
+   * body under it is the Soft one; the coat is lit like it.
+   */
+  fur?: boolean
 }
 
 /**
@@ -80,8 +85,14 @@ const SOFT: SettingFlat = {
   smooth: { from: -0.75, a: 0.7 }
 }
 
+/**
+ * `plush` (Plush style, 24/11/2026): the Soft body and lighting, dressed in a coat of fur. Accessories, ground shadow
+ * and the eyes painted on the body are the Soft ones; the coat leaves the eyes free.
+ */
+const PLUSH: SettingFlat = { ...SOFT, fur: true }
+
 /** The settings: a single table, tuned by eye in `#shapes3d`. */
-const FLAT: Record<Exclude<Material, 'realistic' | 'soft'>, SettingFlat> = {
+const FLAT: Record<Exclude<Material, 'realistic' | 'soft' | 'plush'>, SettingFlat> = {
   toon: {
     thresholds: [0.2, 0.86],
     tones: [0.7, 1, 1.12],
@@ -133,14 +144,14 @@ const FLAT: Record<Exclude<Material, 'realistic' | 'soft'>, SettingFlat> = {
 /** Setting of a flat variant, `null` for realistic. */
 export function settingFlat(r: Material): SettingFlat | null {
   if (r === 'realistic') return null
-  return r === 'soft' ? SOFT : FLAT[r]
+  return r === 'soft' ? SOFT : r === 'plush' ? PLUSH : FLAT[r]
 }
 
 /**
  * Whether the body is shaded (relief). The Soft material is ALWAYS shaded (11/11/2026: Soft without shading was the
  * same as Flat without shading), so `shading: false` only changes the other materials (Flat, Pixel).
  */
-export const shadedFor = (r: Material, shading: boolean): boolean => shading || r === 'soft'
+export const shadedFor = (r: Material, shading: boolean): boolean => shading || r === 'soft' || r === 'plush'
 
 /** Mesh in use: `full` (realistic finesse) or `coarse` (lowpoly). */
 export const meshOf = (r: Material): 'full' | 'grossier' =>

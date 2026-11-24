@@ -15,6 +15,7 @@ export { Object3D } from 'three/src/core/Object3D.js'
 export { BufferGeometry } from 'three/src/core/BufferGeometry.js'
 export { BufferAttribute, Float32BufferAttribute } from 'three/src/core/BufferAttribute.js'
 export { InstancedBufferAttribute } from 'three/src/core/InstancedBufferAttribute.js'
+export { InstancedBufferGeometry } from 'three/src/core/InstancedBufferGeometry.js'
 export { InterleavedBuffer } from 'three/src/core/InterleavedBuffer.js'
 export { InterleavedBufferAttribute } from 'three/src/core/InterleavedBufferAttribute.js'
 export { Raycaster } from 'three/src/core/Raycaster.js'
@@ -27,8 +28,11 @@ export { HemisphereLight } from 'three/src/lights/HemisphereLight.js'
 export { MeshBasicMaterial } from 'three/src/materials/MeshBasicMaterial.js'
 export { MeshStandardMaterial } from 'three/src/materials/MeshStandardMaterial.js'
 export { MeshToonMaterial } from 'three/src/materials/MeshToonMaterial.js'
+export { ShaderMaterial } from 'three/src/materials/ShaderMaterial.js'
 export { CanvasTexture } from 'three/src/textures/CanvasTexture.js'
 export { DataTexture } from 'three/src/textures/DataTexture.js'
+export { Data3DTexture } from 'three/src/textures/Data3DTexture.js'
+export type { Texture } from 'three/src/textures/Texture.js'
 export { Box3 } from 'three/src/math/Box3.js'
 export { Color } from 'three/src/math/Color.js'
 export { Matrix4 } from 'three/src/math/Matrix4.js'
@@ -50,10 +54,16 @@ export { TorusGeometry } from 'three/src/geometries/TorusGeometry.js'
 export { TubeGeometry } from 'three/src/geometries/TubeGeometry.js'
 export {
   BackSide,
+  ClampToEdgeWrapping,
   DoubleSide,
+  FloatType,
   LinearFilter,
+  LinearMipmapLinearFilter,
   NearestFilter,
+  NoColorSpace,
   RedFormat,
+  RGBAFormat,
+  RepeatWrapping,
   SRGBColorSpace,
   TriangleFanDrawMode,
   TriangleStripDrawMode,

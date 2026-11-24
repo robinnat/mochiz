@@ -27,7 +27,7 @@ describe('3D performance (v12)', () => {
     expect(scene).not.toContain('c.getImageData(0, 0, px, px)')
   })
 
-  it('the shaders of the three styles are compiled in advance, after the first frame', () => {
+  it('the shaders of the four styles are compiled in advance, after the first frame', () => {
     expect(scene).toContain('export function warmUp()')
     expect(read('./ready.ts')).toContain('m.warmUp()')
     expect(read('./Alive.ts')).toContain('warmUpStyles()')
