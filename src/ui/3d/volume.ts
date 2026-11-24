@@ -170,7 +170,20 @@ export const PROFILES: Record<string, ProfileVolume> = {
   // heart: domed cushion, dip at the top and a soft tip at the bottom
   heart: { depth: 0.85, rounded: 0.98, back: 1, cushion: true },
   // cloud: domed cushion, validated as is
-  cloud: { depth: 1, rounded: 1, back: 1, cushion: true }
+  cloud: { depth: 1, rounded: 1, back: 1, cushion: true },
+  // new shapes (24/11/2026, for review). Heads with ears and the ghost: domed cushions, the lobes melt into the head
+  cat: { depth: 0.9, rounded: 1, back: 1, cushion: true },
+  bear: { depth: 0.9, rounded: 1, back: 1, cushion: true },
+  ghost: { depth: 0.9, rounded: 1, back: 1, cushion: true },
+  // round seen from above: solids of revolution around the vertical axis
+  daifuku: { depth: 1, rounded: 1, back: 1, revolution: 'v' },
+  pear: { depth: 1, rounded: 1, back: 1, revolution: 'v' },
+  mushroom: { depth: 1, rounded: 1, back: 1, revolution: 'v' },
+  bell: { depth: 1, rounded: 1, back: 1, revolution: 'v' },
+  // flatter cushions: a bean, a rice ball, a cut stone
+  bean: { depth: 0.8, rounded: 1, back: 1, cushion: true },
+  riceball: { depth: 0.7, rounded: 0.98, back: 1, cushion: true },
+  gem: { depth: 0.7, rounded: 0.9, back: 1, cushion: true }
 }
 
 export const profileOf = (shape?: string | null): ProfileVolume =>

@@ -32,7 +32,7 @@
 import { EXPRESSIONS, type BotExpression } from './expressions'
 import { eyePoses } from './face'
 import { radiusAtAngle, toPoints, type Point } from './shape'
-import { SHAPES } from './skins'
+import { ALL_SHAPES } from './skins'
 import { STATES, type Pose, type StateDef, type StateId } from './states'
 
 /** Reference radius of the solver. The returned offset is in units of this radius. */
@@ -387,7 +387,7 @@ const key = (state: StateId, expr: string | null) => `${state}|${expr ?? ''}`
  */
 function batir(): Map<number[], Map<string, { x: number; y: number }>> {
   return new Map(
-  SHAPES.map((shape) => {
+  ALL_SHAPES.map((shape) => {
     const byKey = new Map<string, { x: number; y: number }>()
     for (const def of STATES) {
       if (!def.baseBody) continue

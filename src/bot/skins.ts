@@ -1,4 +1,5 @@
 import { PROFILE_SAMPLES } from './profiles'
+import type { Point } from './shape'
 import {
   hullOfCircles,
   profileFromPolygon,
@@ -33,6 +34,13 @@ export type ShapeId =
   | 'flower'
   | 'egg'
   | 'heart'
+  | NewShapeId
+
+/**
+ * Shapes drawn on 24/11/2026, offered for review: they work (`shape="cat"`), but stay out of `SHAPES` (the public
+ * catalog, the site and the docs) until Robin picks the ones to keep (see `NEW_SHAPES`).
+ */
+export type NewShapeId = 'cat' | 'bear' | 'ghost' | 'daifuku' | 'pear' | 'bean' | 'riceball' | 'gem' | 'mushroom' | 'bell'
 
 export interface BotShape {
   id: ShapeId
@@ -159,6 +167,176 @@ const heart = normalize(
   1.06
 )
 
+/**
+ * Union of shapes seen from the center: per direction, the farthest edge. Exact when every part contains the center or
+ * overlaps one that does along each ray (ears on a head); a small gap would be filled, never left as a hole.
+ */
+function unionProfiles(...profiles: number[][]): number[] {
+  return profiles[0]!.map((_, i) => Math.max(...profiles.map((p) => p[i]!)))
+}
+
+/** Points of an ellipse centered at (cx, cy), clockwise on screen. */
+function ellipse(cx: number, cy: number, rx: number, ry: number, n = 160): Point[] {
+  return Array.from({ length: n }, (_, i) => {
+    const t = (i / n) * Math.PI * 2
+    return { x: cx + rx * Math.cos(t), y: cy + ry * Math.sin(t) }
+  })
+}
+
+/* ---------------------------------------------------------------- new shapes (24/11/2026, for review) */
+
+/** Cat: a round head, a little wider than high, and two pointed ears with soft tips. */
+const cat = normalize(
+  smooth(
+    unionProfiles(
+      profileFromPolygon(ellipse(0, 0.14, 0.95, 0.8), 0, 0),
+      profileFromPolygon([{ x: 0.24, y: -0.5 }, { x: 0.66, y: -1.02 }, { x: 0.86, y: -0.2 }], 0, 0),
+      profileFromPolygon([{ x: -0.86, y: -0.2 }, { x: -0.66, y: -1.02 }, { x: -0.24, y: -0.5 }], 0, 0)
+    ),
+    1.3
+  ),
+  1.08
+)
+
+/** Bear: a round head and two round ears on top. */
+const bear = normalize(
+  smooth(
+    unionOfCirclesProfile([
+      { x: 0, y: 0.12, r: 0.86 },
+      { x: -0.62, y: -0.58, r: 0.32 },
+      { x: 0.62, y: -0.58, r: 0.32 }
+    ]),
+    1.0
+  ),
+  1.06
+)
+
+/** Ghost: a round dome, straight sides, and a hem of three round scallops at the bottom. */
+const ghost = normalize(
+  smooth(
+    profileFromPolygon(
+      [
+        // dome, left to right over the top (y down)
+        ...Array.from({ length: 60 }, (_, i) => {
+          const a = Math.PI + (i / 59) * Math.PI
+          return { x: 0.84 * Math.cos(a), y: -0.12 + 0.84 * Math.sin(a) }
+        }),
+        { x: 0.84, y: 0.62 },
+        // hem, right to left: three scallops hanging down
+        ...Array.from({ length: 91 }, (_, i) => {
+          const u = i / 90
+          const x = 0.84 - 1.68 * u
+          return { x, y: 0.62 + 0.24 * Math.abs(Math.sin(3 * Math.PI * u)) }
+        })
+      ],
+      0,
+      0
+    ),
+    1.2
+  ),
+  1.06
+)
+
+/** Daifuku (the mochi sweet): a wide soft dome on a flat bottom, like a filled rice cake resting on a plate. */
+const daifuku = normalize(
+  profileFromPolygon(
+    Array.from({ length: 200 }, (_, i) => {
+      const t = (i / 200) * Math.PI * 2
+      const s = Math.sin(t)
+      // top: a full dome; bottom: almost flat with round corners
+      return { x: 1.04 * Math.cos(t), y: s < 0 ? 0.26 + 0.98 * s : 0.26 + 0.46 * s ** 0.55 }
+    }),
+    0,
+    0
+  ),
+  1.08
+)
+
+/** Pear: a big round bottom, a smaller top and a soft waist between them. */
+const pear = normalize(
+  smooth(
+    unionOfCirclesProfile([
+      { x: 0, y: 0.3, r: 0.72 },
+      { x: 0, y: -0.48, r: 0.46 }
+    ]),
+    2.2
+  ),
+  1.06
+)
+
+/** Bean: lying, wider than high, a gentle dent in the middle of the top. */
+const bean = normalize(
+  smooth(
+    profileFromPolygon(
+      Array.from({ length: 200 }, (_, i) => {
+        const t = (i / 200) * Math.PI * 2
+        const x = 1.0 * Math.cos(t)
+        let y = 0.66 * Math.sin(t)
+        if (y < 0) y += 0.2 * Math.exp(-((x / 0.38) ** 2))
+        return { x, y }
+      }),
+      0,
+      0.04
+    ),
+    1.0
+  ),
+  1.08
+)
+
+/** Rice ball (onigiri): a triangle much rounder than the pyramid, thick and soft. */
+const riceball = normalize(regularPolygonProfile(3, 1.1, 0.62, -90), 1.08)
+
+/** Gem: a flat top, two shoulders and a soft point at the bottom, like a cut stone. */
+const gem = normalize(
+  smooth(
+    profileFromPolygon(
+      [
+        { x: -0.52, y: -0.64 },
+        { x: 0.52, y: -0.64 },
+        { x: 0.98, y: -0.18 },
+        { x: 0, y: 0.98 },
+        { x: -0.98, y: -0.18 }
+      ],
+      0,
+      0
+    ),
+    1.4
+  ),
+  1.08
+)
+
+/** Mushroom: a wide round cap over a short, thick stem. */
+const mushroom = normalize(
+  smooth(
+    unionProfiles(
+      profileFromPolygon(ellipse(0, -0.2, 1.04, 0.62), 0, 0),
+      profileFromPolygon(ellipse(0, 0.36, 0.6, 0.56), 0, 0)
+    ),
+    2.0
+  ),
+  1.08
+)
+
+/** Bell: a dome that flares out into a wide, round rim at the bottom. */
+const bell = normalize(
+  smooth(
+    profileFromPolygon(
+      Array.from({ length: 200 }, (_, i) => {
+        const t = (i / 200) * Math.PI * 2
+        const s = Math.sin(t)
+        const c = Math.cos(t)
+        // width grows towards the bottom (flare), the bottom is a gentle curve
+        const flare = 0.6 + 0.48 * Math.max(0, s) ** 1.2
+        return { x: flare * c, y: s < 0 ? 0.12 + 0.92 * s : 0.12 + 0.56 * s ** 2.2 }
+      }),
+      0,
+      0
+    ),
+    1.0
+  ),
+  1.06
+)
+
 /** Lying capsule: hull of two discs side by side. */
 const capsule = profileFromPolygon(hullOfCircles(-0.42, 0, 0.62, 0.42, 0, 0.62), 0, 0)
 
@@ -181,9 +359,29 @@ export const SHAPES: BotShape[] = [
   { id: 'heart', radii: heart }
 ]
 
+/**
+ * New shapes (24/11/2026), for review: usable by id like the others, but not in `SHAPES` (catalog, site, docs) until
+ * the ones to keep are chosen. Their eyes get the same fitting table as the catalog shapes (`eyefit.ts`).
+ */
+export const NEW_SHAPES: BotShape[] = [
+  { id: 'cat', radii: cat },
+  { id: 'bear', radii: bear },
+  { id: 'ghost', radii: ghost },
+  { id: 'daifuku', radii: daifuku },
+  { id: 'pear', radii: pear },
+  { id: 'bean', radii: bean },
+  { id: 'riceball', radii: riceball },
+  { id: 'gem', radii: gem },
+  { id: 'mushroom', radii: mushroom },
+  { id: 'bell', radii: bell }
+]
+
+/** Every shape the engine knows: the catalog, then the new shapes under review. */
+export const ALL_SHAPES: BotShape[] = [...SHAPES, ...NEW_SHAPES]
+
 // Map keyed by `string`, not `ShapeId`: callers query with
 // a value read back from localStorage or a prop, so not validated.
-export const SHAPE_BY_ID = new Map<string, BotShape>(SHAPES.map((s) => [s.id, s]))
+export const SHAPE_BY_ID = new Map<string, BotShape>(ALL_SHAPES.map((s) => [s.id, s]))
 export const DEFAULT_SHAPE = 'circle'
 
 export type ColorId =
