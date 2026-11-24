@@ -11,7 +11,7 @@ These pages are the documentation of Mochiz. The website shows exactly the same 
 
 - [Architecture](architecture.md): the engine, the 3D and why the code is shaped this way.
 - [Measurements](measurements.md): where the numbers in `src/bot/` come from.
-- [Styles](styles.md): how Soft, Flat and Pixel are drawn.
+- [Styles](styles.md): how Soft, Flat, Pixel and Plush are drawn.
 - [Moods](moods.md): moods and reactions.
 - [Gestures](gestures.md): small extra moves on top of the pose.
 - [Accessories](accessories.md): how accessories are built and placed.

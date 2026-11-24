@@ -8,7 +8,7 @@ const { version } = JSON.parse(readFileSync(new URL('./package.json', import.met
  * license asks for the notice in every copy, and the docs tell users to ship it: the files must carry it.
  */
 export function licenseNotice(standalone: boolean): string {
-  const own = `Mochiz ${version} | MIT License | Copyright (c) 2026 SYGEN SAS, Copyright (c) 2026 Jérémy Perret | https://github.com/robinnat/mochiz`
+  const own = `Mochiz ${version} | MIT License | Copyright (c) 2026 SYGEN SAS, Copyright (c) 2026 Jérémy Perret, Copyright (c) 2026 Dominik Scholz | https://github.com/robinnat/mochiz`
   const three = standalone ? ' | Includes Three.js, MIT License, Copyright (c) 2010-2026 three.js authors | https://threejs.org' : ''
   return `/*! ${own}${three} */`
 }

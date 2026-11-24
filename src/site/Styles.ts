@@ -8,7 +8,7 @@ import { reveal, useWidth, useVisible } from './motion'
 import type { RenderStyleId } from 'mochiz-world/catalog'
 
 /**
- * The three styles, on scroll: the scene stays stuck while the three steps go by, and the Mochi changes style when a
+ * The four styles, on scroll: the scene stays stuck while the four steps go by, and the Mochi changes style when a
  * step reaches the middle of the screen. It turns slowly on itself (real 3D, `yaw`) as long as the scene is visible.
  * On a phone, each step carries its own frozen image.
  */
@@ -33,6 +33,13 @@ const STEPS: { id: RenderStyleId; name: string; code: string; text: string; back
     code: 'render-style="flat3d"',
     text: 'Two or three flat tones and no gloss, for a bold, graphic look.',
     background: 'var(--p-peche)'
+  },
+  {
+    id: 'plush',
+    name: 'Plush',
+    code: 'render-style="plush"',
+    text: 'The Soft body in a coat of long, dense fur, with dark bead eyes pressed into it. A soft toy. It asks more of the graphics card: best with a few Mochiz on screen.',
+    background: 'var(--p-ciel)'
   }
 ]
 
@@ -89,8 +96,8 @@ export const Styles: Component<Record<string, never>> = () => {
       h(
         'div',
         { class: 'wrap sec-head' },
-        h('p', { ref: reveal(), class: 'eyebrow' }, 'Three styles'),
-        h('h2', { id: 't-styles', ref: reveal(1), class: 'title-sec' }, 'One model.', h('br'), 'Three looks.'),
+        h('p', { ref: reveal(), class: 'eyebrow' }, 'Four styles'),
+        h('h2', { id: 't-styles', ref: reveal(1), class: 'title-sec' }, 'One model.', h('br'), 'Four looks.'),
         h('p', { ref: reveal(2), class: 'lede' }, 'Every Mochi is a real 3D volume, so it can turn and still be itself. Switch the look with a single attribute.')
       ),
       h(

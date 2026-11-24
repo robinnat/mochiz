@@ -30,7 +30,8 @@ vi.mock('@/ui/3d/scene3d', () => ({
   invalidateAccessories3d: () => {},
   avatarSlot: () => ({ mochi: null, texture: 0 }),
   releaseSlot: () => {},
-  warmUp: () => {}
+  warmUp: () => {},
+  setFurLevel: () => {}
 }))
 
 const SETTINGS = { shape: 'circle', color: 'ink', expression: 'neutral' }

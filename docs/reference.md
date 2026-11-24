@@ -11,10 +11,10 @@ Each option is both an attribute (written in HTML, with dashes, as text) and a p
 | `size` | number | `320` | Width and height, in pixels. |
 | `shape` | string | `circle` | Shape id, see [Shapes](#shapes). |
 | `color` | string | `ink` | Color id, see [Colors](#colors), or any hex color (`#ff8800`, `#f80`). |
-| `render-style` | `3d`, `pixel3d` or `flat3d` | `3d` | Style: Soft, Pixel or Flat. |
+| `render-style` | `3d`, `pixel3d`, `flat3d` or `plush` | `3d` | Style: Soft, Pixel, Flat or Plush. |
 | `mood` | string | none | Mood played on a loop, see [Moods](#moods). |
 | `accessories` | JSON object | none | Accessories by slot, see [Accessories](#accessories). |
-| `theme` | `light` or `dark` | `currentTheme` (`auto`: the device's theme) | The dark theme turns the eyes black. |
+| `theme` | `light` or `dark` | `currentTheme` (`auto`: the device's theme) | The dark theme turns the eyes black (Plush eyes are dark in both). |
 | `interactions` | boolean | `true` | Reactions to hover, tap, double tap, long press and shake. |
 | `wave` | boolean | `false` | Waves once when it appears. |
 | `follow` | boolean | `false` | The eyes follow the pointer anywhere in the window (turns the reactions off). |
@@ -23,8 +23,8 @@ Each option is both an attribute (written in HTML, with dashes, as text) and a p
 | `yaw` | number | `0` | Turns the model around its vertical axis, in radians. |
 | `laptop` | boolean | `true` | Shows the laptop of the `working` mood. |
 | `pixel` | `medium` or `fine` | `fine` | Pixel size of the Pixel style. |
-| `shadow` | boolean | `true` | Ground shadow under the body, in all three styles (soft in Soft, flat in Flat, made of pixels in Pixel). |
-| `shading` | boolean | `true` | Shading of the body volume (the relief), Flat and Pixel styles only. `false` gives one flat color. Soft is always shaded: it ignores `shading`. |
+| `shadow` | boolean | `true` | Ground shadow under the body, in every style (soft in Soft and Plush, flat in Flat, made of pixels in Pixel). |
+| `shading` | boolean | `true` | Shading of the body volume (the relief), Flat and Pixel styles only. `false` gives one flat color. Soft and Plush are always shaded: they ignore `shading`. |
 | `max-pixel-ratio` | number | `2` | Caps the sharpness of the 3D canvas (screen pixels per CSS pixel). `1.5` is lighter on phones. |
 | `label` | string | `Animated Mochi avatar` | Text read by screen readers instead of the drawing. The default is English, whatever the browser language: pass your own text for a page in another language. |
 

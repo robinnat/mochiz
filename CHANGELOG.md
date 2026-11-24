@@ -5,6 +5,16 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added (Plush)
+
+- **A fourth style, Plush** (`render-style="plush"`): the Soft body in a coat of long, dense fur, with dark glossy bead
+  eyes pressed into it, in both themes. The technique is the "fluffy" material of open-bot-avatar
+  (https://github.com/DominikScholz/open-bot-avatar), Copyright (c) 2026 Dominik Scholz, MIT License, ported to the
+  Mochiz scene; its copyright line is added to LICENSE and to the notice of the built files. Plush asks about twice
+  as much of the graphics card as Soft: best with a few Mochiz on screen. The coat gets lighter by itself when the
+  page has many Mochiz to draw. `RENDER_STYLES` (entry `mochiz-world/catalog`) now lists four styles.
+- The website shows Plush in the styles section, the shapes grid and the customizer.
+
 ### Added (shapes)
 
 - **Ten new shapes**, for 22 in all: `cat`, `bear`, `ghost`, `daifuku`, `pear`, `bean`, `riceball`, `gem`, `mushroom`
