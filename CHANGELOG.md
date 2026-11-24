@@ -5,6 +5,8 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-24
+
 ### Added (Plush)
 
 - **A fourth style, Plush** (`render-style="plush"`): the Soft body in a coat of long, dense fur, with dark glossy bead
@@ -426,7 +428,8 @@ fixed, and the measurement is in the commit that fixes it.
 - `StateDef.hint`: 15 hardcoded French strings nothing read, inside a type meant to
   become public.
 
-[unreleased]: https://github.com/robinnat/mochiz/compare/v0.2.1...HEAD
+[unreleased]: https://github.com/robinnat/mochiz/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/robinnat/mochiz/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/robinnat/mochiz/releases/tag/v0.2.1
 [0.2.0]: https://github.com/robinnat/mochiz/releases/tag/v0.2.0
 [0.1.1]: https://github.com/robinnat/mochiz/commits/main

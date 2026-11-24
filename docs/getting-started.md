@@ -35,7 +35,7 @@ import { SHAPES, COLORS } from 'mochiz-world/catalog'
 Load the standalone build (Three.js included) from a CDN, with a script tag:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.2.1/dist-lib/standalone/mochiz.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.3.0/dist-lib/standalone/mochiz.js"></script>
 ```
 
 ### Without npm: build it from the repository
@@ -61,7 +61,7 @@ The examples below load the library from the CDN in plain HTML and with `import 
 ## Your first Mochi
 
 ```html live
-<script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.2.1/dist-lib/standalone/mochiz.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.3.0/dist-lib/standalone/mochiz.js"></script>
 
 <mochi-bot shape="star" color="blue" mood="idle" size="200" wave></mochi-bot>
 ```
