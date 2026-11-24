@@ -1,26 +1,31 @@
 <!doctype html>
-<!-- Source of public/og.png (share image 1200x630). Dev page, not built: served by `pnpm dev` at /tools/og.html, then
-  captured at 1200x630 by headless Chrome. -->
+<!-- Source of public/og.png (share image, 1200x630). Dev page, not built: served by `pnpm dev` at /tools/og.html,
+  then captured at 1200x630 by headless Chrome with the GPU (never the software renderer, it changes the 3D).
+  The page sets body[data-done="1"] when every Mochi has painted its frame. -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Mochiz og</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet" />
     <style>
       html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #fbfbf9; }
-      body { font-family: ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, sans-serif; color: #111113; position: relative; }
-            h1 { position: absolute; left: 88px; top: 190px; margin: 0; font-size: 196px; line-height: 1; letter-spacing: -0.04em; }
-      p { position: absolute; left: 94px; margin: 0; color: #6b6b72; }
-      .l1 { top: 400px; font-size: 40px; color: #111113; font-weight: 600; letter-spacing: -0.01em; }
-      .l2 { top: 462px; font-size: 30px; }
-      .pill { position: absolute; left: 94px; top: 124px; background: #efefec; color: #111113; font-weight: 700; font-size: 22px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 18px; border-radius: 999px; }
+      body { font-family: 'Fredoka', ui-rounded, system-ui, sans-serif; color: #111113; position: relative; }
+      .text { position: absolute; left: 84px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; }
+      h1 { margin: 0; font-weight: 600; font-size: 136px; line-height: 0.98; letter-spacing: -0.01em; }
+      .tagline { margin: 22px 0 0; font-weight: 500; font-size: 38px; line-height: 1.2; color: #5c5c62; }
+      .facts { display: flex; gap: 14px; margin-top: 34px; }
+      .fact { background: #efefec; border-radius: 999px; padding: 10px 24px 12px; font-weight: 600; font-size: 30px; }
       #og { position: absolute; inset: 0; }
+      .cell { position: absolute; width: 320px; display: flex; flex-direction: column; align-items: center; }
+      .cell span { margin-top: -44px; font-weight: 500; font-size: 26px; color: #5c5c62; }
     </style>
   </head>
   <body>
-    <span class="pill">Animated avatars</span>
-    <h1>Mochiz</h1>
-    <p class="l1">One soft shape, five face moods.</p>
-    <p class="l2">Real 3D in three styles: Soft, Flat, Pixel.</p>
+    <div class="text">
+      <h1>Mochiz</h1>
+      <p class="tagline">Animated 3D avatars<br />for the web.</p>
+      <div class="facts"><span class="fact">4 styles</span><span class="fact">22 shapes</span></div>
+    </div>
     <div id="og"></div>
     <script type="module" src="./og.ts"></script>
   </body>
