@@ -236,7 +236,7 @@ describe('moods: engine', () => {
     expect(JSON.stringify(e.sample(1.3, h.sample(1.3)))).toBe(JSON.stringify(a))
   })
 
-  it('on the 11 shapes, every mood and reaction gives a valid body and two valid eyes', () => {
+  it('on every shape, every mood and reaction gives a valid body and two valid eyes', () => {
     for (const s of SHAPES) {
       const e = new BotEngine(100, 'idle', s.radii, null)
       for (const m of MOOD_IDS) {

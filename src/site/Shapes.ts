@@ -6,7 +6,7 @@ import { STYLES_SITE } from './style'
 import type { RenderStyleId } from 'mochiz-world/catalog'
 import { reveal, useWidth } from './motion'
 
-/** The twelve shapes, frozen images (one render each, no loop), appearing in a cascade. */
+/** The 22 shapes, frozen images (one render each, no loop), appearing in a cascade. */
 export const Shapes: Component<Record<string, never>> = () => {
   const style = ref<RenderStyleId>('3d')
   const width = useWidth()
@@ -21,7 +21,7 @@ export const Shapes: Component<Record<string, never>> = () => {
       h(
         'div',
         { class: 'wrap sec-head sec-head-row' },
-        h('div', null, h('p', { ref: rv[0], class: 'eyebrow' }, 'Shapes'), h('h2', { id: 't-shapes', ref: rv[1], class: 'title-sec' }, 'Twelve shapes.', h('br'), 'Same soul.')),
+        h('div', null, h('p', { ref: rv[0], class: 'eyebrow' }, 'Shapes'), h('h2', { id: 't-shapes', ref: rv[1], class: 'title-sec' }, '22 shapes.', h('br'), 'Same soul.')),
         h(
           'div',
           { ref: rv[2], class: 'segment', role: 'group', 'aria-label': 'Style of the shapes' },
@@ -33,7 +33,7 @@ export const Shapes: Component<Record<string, never>> = () => {
         { class: 'wrap' },
         h(
           'ul',
-          { class: 'shapes', 'aria-label': 'The twelve shapes' },
+          { class: 'shapes', 'aria-label': 'The 22 shapes' },
           SHAPES_3D.map((f, i) =>
             h(
               'li',

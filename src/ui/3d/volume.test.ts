@@ -104,7 +104,8 @@ describe('inflation', () => {
         expect(ax * by - ay * bx, shape.id).toBeGreaterThan(0)
       }
     }
-  })
+    // 22 shapes: several seconds under a loaded machine, more than the default 5 s
+  }, 30_000)
 
   it('the wall faces outwards (horizontal normal, outwards)', () => {
     const pts = bodyOutline(image('squircle').bodyPath)

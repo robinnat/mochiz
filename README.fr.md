@@ -13,7 +13,7 @@ Les Mochiz sont de petits personnages animés pour le web. Un personnage s'appel
 
 On ajoute un Mochi à n'importe quelle page avec une seule balise HTML, `<mochi-bot>`. Elle marche en HTML simple et dans n'importe quel framework (React, Vue, Svelte, Angular...).
 
-- 12 formes et 18 couleurs, ou n'importe quelle couleur hex
+- 22 formes (un chat, un ours, un fantôme, un daifuku...) et 18 couleurs, ou n'importe quelle couleur hex
 - 4 styles, tous en vraie 3D : Soft, Flat, Pixel et Plush (un pelage)
 - 7 humeurs, et 5 réactions (à une tape, une double tape, un appui long, une secousse, et un coucou à l'arrivée)
 - 22 accessoires à combiner, dans les couleurs de votre choix

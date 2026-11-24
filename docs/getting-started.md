@@ -82,12 +82,13 @@ A yes-or-no option is on when the attribute is present (`wave`), and off with `"
 ### Size, shape and color
 
 - `size` is the width and height, in pixels (320 by default).
-- `shape` takes one of the 12 shape ids.
+- `shape` takes one of the 22 shape ids.
 - `color` takes one of the 18 color ids, or any hex color. A hex color is `#` followed by 6 or 3 digits from 0 to f, like `#ff8800` or `#f80`.
 
 ```html live
 <!-- a color id from the catalog -->
 <mochi-bot shape="cloud" color="pink" size="120"></mochi-bot>
+<mochi-bot shape="cat" color="orange" size="120"></mochi-bot>
 
 <!-- or any hex color, long or short -->
 <mochi-bot shape="heart" color="#ff8800" size="120"></mochi-bot>

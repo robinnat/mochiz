@@ -48,7 +48,10 @@ export const PALETTE_SITE: { name: string; hex: string }[] = [
   { name: 'Cherry', hex: '#e6194b' }
 ]
 
-/** The site's 3D shapes, each with ITS color (12 shapes, 12 different tints of the palette). */
+/**
+ * The site's 3D shapes, each with ITS color from the palette. 22 shapes for 14 tints: some tints come back, but never
+ * next to each other in the grid (6 columns on a computer, 3 on a phone; `catalog.test.ts` checks it).
+ */
 export const SHAPES_3D: { id: string; label: string; color: string }[] = [
   { id: 'circle', label: 'Circle', color: '#00c46a' },
   { id: 'pebble', label: 'Pebble', color: '#21b0ff' },
@@ -61,7 +64,17 @@ export const SHAPES_3D: { id: string; label: string; color: string }[] = [
   { id: 'star', label: 'Star', color: '#b6e800' },
   { id: 'flower', label: 'Flower', color: '#00c7be' },
   { id: 'egg', label: 'Egg', color: '#8b3dff' },
-  { id: 'heart', label: 'Heart', color: '#ff3b30' }
+  { id: 'heart', label: 'Heart', color: '#ff3b30' },
+  { id: 'cat', label: 'Cat', color: '#ff9500' },
+  { id: 'bear', label: 'Bear', color: '#21b0ff' },
+  { id: 'ghost', label: 'Ghost', color: '#8b3dff' },
+  { id: 'daifuku', label: 'Daifuku', color: '#ff4d94' },
+  { id: 'pear', label: 'Pear', color: '#b6e800' },
+  { id: 'bean', label: 'Bean', color: '#ff6a3d' },
+  { id: 'riceball', label: 'Rice ball', color: '#00c7be' },
+  { id: 'gem', label: 'Gem', color: '#e6194b' },
+  { id: 'mushroom', label: 'Mushroom', color: '#ffd60a' },
+  { id: 'bell', label: 'Bell', color: '#2d5bff' }
 ]
 
 /*

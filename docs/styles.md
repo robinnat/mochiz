@@ -39,10 +39,11 @@ Plush dresses the Soft body in a coat of fur. The technique is the "fluffy" mate
 
 ## 3D shapes
 
-The 12 shapes have a real volume from every angle: a sphere (circle), an ellipsoid (pebble), a very round pillow (squircle), a lying tube (capsule), a rounded cone (triangle), a deep hexagon, cloud, drop, star, flower, egg and heart.
+The 22 shapes have a real volume from every angle: a sphere (circle), an ellipsoid (pebble), a very round pillow (squircle), a lying tube (capsule), a rounded cone (triangle), a deep hexagon, cloud, drop, star, flower, egg and heart; then a cat and a bear (a head with two ears), a ghost (a dome with a scalloped hem), a daifuku (the mochi sweet: a dome on a flat bottom), a pear, a bean, a rice ball, a gem, a mushroom and a bell.
 
-- Star, hexagon, cloud and flower are inflated as a "cushion" (`ProfileVolume.cushion`): the height solves a Poisson equation inside the outline (0 on the edge), computed once per shape and cached, then `z = H * (u / umax) ^ 0.45`. The surface is smooth everywhere, with a rounded edge and no fold between lobes; normals are smoothed on top.
-- Drop, egg, triangle and capsule are solids of revolution (`ProfileVolume.revolution`): the depth of a point is the half width of the outline at its height.
+- Star, hexagon, cloud, flower and heart are inflated as a "cushion" (`ProfileVolume.cushion`): the height solves a Poisson equation inside the outline (0 on the edge), computed once per shape and cached, then `z = H * (u / umax) ^ 0.45`. The surface is smooth everywhere, with a rounded edge and no fold between lobes; normals are smoothed on top. Cat, bear, ghost, bean, rice ball and gem are cushions too: the ears melt into the head.
+- Drop, egg, triangle and capsule are solids of revolution (`ProfileVolume.revolution`): the depth of a point is the half width of the outline at its height. Daifuku, pear, mushroom and bell too: they are round seen from above.
+- Every shape keeps the same eye size and the same eye placement rules: the eyes stay inside the silhouette in every state and mood (`skins.test.ts`, `volume.test.ts`).
 
 The engine does not change: `engine.sample(t)` gives the same frame, and the states, their measurements and durations are the same. Only `mochi-bot.ts` paints the frame differently. The catalog and the current setting live in `src/ui/renderStyle.ts`.
 

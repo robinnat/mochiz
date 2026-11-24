@@ -109,6 +109,16 @@ bot.playing = true
 | `flower` | Flower |
 | `egg` | Egg |
 | `heart` | Heart |
+| `cat` | Cat |
+| `bear` | Bear |
+| `ghost` | Ghost |
+| `daifuku` | Daifuku |
+| `pear` | Pear |
+| `bean` | Bean |
+| `riceball` | Rice ball |
+| `gem` | Gem |
+| `mushroom` | Mushroom |
+| `bell` | Bell |
 
 ## Colors
 
