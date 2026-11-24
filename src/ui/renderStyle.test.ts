@@ -7,7 +7,6 @@ import {
   DEFAULT_PIXEL,
   DEFAULT_RENDER_STYLE,
   RENDER_STYLES,
-  PREVIEW_STYLES,
   materialFor,
   effectiveRenderStyle,
   effectivePixel,
@@ -26,14 +25,12 @@ describe('style catalog', () => {
     expect(RENDER_STYLES[0]).toBe('3d')
   })
 
-  it('only offers three styles, all real 3D: Soft, Flat, Pixel', () => {
-    expect(RENDER_STYLES).toEqual(['3d', 'flat3d', 'pixel3d'])
+  it('offers four styles, all real 3D: Soft, Flat, Pixel and Plush', () => {
+    expect(RENDER_STYLES).toEqual(['3d', 'flat3d', 'pixel3d', 'plush'])
   })
 
-  it('accepts Plush, not offered yet: it works but stays out of the catalog until it is chosen', () => {
-    expect(PREVIEW_STYLES).toEqual(['plush'])
+  it('Plush is a public style: the Soft body in a coat of fur', () => {
     expect(isRenderStyle('plush')).toBe(true)
-    expect(RENDER_STYLES).not.toContain('plush')
     expect(effectiveRenderStyle('plush')).toBe('plush')
     expect(materialFor('plush', 'soft')).toBe('plush')
     expect(materialFor('3d', 'soft')).toBe('soft')

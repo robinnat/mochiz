@@ -25,8 +25,8 @@ export const RATIO_MAX = mobile ? 1.5 : 2
 export const FPS_ALIVE: number | undefined = undefined
 
 /**
- * After the page's first 3D frame, during a free moment: compiles the shaders of the three styles, so the first style
- * change (Soft, Pixel, Flat) answers at once. Only once per page.
+ * After the page's first 3D frame, during a free moment: compiles the shaders of the four styles, so the first style
+ * change (Soft, Pixel, Flat, Plush) answers at once. Only once per page.
  */
 let warm = false
 export function warmUpStyles() {

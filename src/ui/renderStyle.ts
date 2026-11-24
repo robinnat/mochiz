@@ -19,20 +19,13 @@ import { LEGACY_PIXEL_SIZES } from '@/ui/legacy'
  */
 export type RenderStyleId = '3d' | 'flat3d' | 'pixel3d' | 'plush'
 
-/** The styles offered in the interface, the catalog and the docs. */
-export const RENDER_STYLES: RenderStyleId[] = ['3d', 'flat3d', 'pixel3d']
-
-/**
- * Styles that work (`render-style="plush"`) but are not offered yet: not in the catalog, the site or the docs until
- * the rendering is chosen (Plush, 24/11/2026). Moving one into `RENDER_STYLES` makes it public.
- */
-export const PREVIEW_STYLES: RenderStyleId[] = ['plush']
+/** The styles offered in the catalog, the site and the docs (Plush since 24/11/2026). */
+export const RENDER_STYLES: RenderStyleId[] = ['3d', 'flat3d', 'pixel3d', 'plush']
 
 /** Soft by default: the validated soft 3D. */
 export const DEFAULT_RENDER_STYLE: RenderStyleId = '3d'
 
-export const isRenderStyle = (v: string): v is RenderStyleId =>
-  (RENDER_STYLES as string[]).includes(v) || (PREVIEW_STYLES as string[]).includes(v)
+export const isRenderStyle = (v: string): v is RenderStyleId => (RENDER_STYLES as string[]).includes(v)
 
 /**
  * 3D material of a style: Soft = the chosen one (`soft` by default), Flat = three tones, Pixel = low resolution +

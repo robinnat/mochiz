@@ -197,13 +197,14 @@ Every accessory id is in the [reference](reference.md#accessories).
 
 ## Styles
 
-There are three styles, all in real 3D. The model is the same, only the drawing changes.
+There are four styles, all in real 3D. The model is the same, only the drawing changes.
 
 | Id | Style |
 | --- | --- |
 | `3d` | Soft (the default) |
 | `pixel3d` | Pixel |
 | `flat3d` | Flat |
+| `plush` | Plush: Soft in a coat of fur |
 
 ```html live
 <!-- Soft is the default -->
@@ -214,15 +215,20 @@ There are three styles, all in real 3D. The model is the same, only the drawing 
 
 <!-- Flat: two or three flat tones -->
 <mochi-bot render-style="flat3d"></mochi-bot>
+
+<!-- Plush: a coat of fur and dark bead eyes -->
+<mochi-bot render-style="plush"></mochi-bot>
 ```
 
-A few more options change the look. `yaw` and `shadow` work in every style; `shading` only in Flat and Pixel (Soft is always shaded):
+Plush asks about twice as much of the graphics card as Soft: use it for a few Mochiz on screen, not for a crowd. Its eyes stay dark in both themes. How it is drawn: [Styles](styles.md#plush-a-coat-of-fur).
+
+A few more options change the look. `yaw` and `shadow` work in every style; `shading` only in Flat and Pixel (Soft and Plush are always shaded):
 
 ```html live
 <!-- turn the model: an angle in radians (a full turn is about 6.28) -->
 <mochi-bot yaw="0.5"></mochi-bot>
 
-<!-- no ground shadow (Soft, Flat and Pixel all draw one by default) -->
+<!-- no ground shadow (every style draws one by default) -->
 <mochi-bot shadow="false"></mochi-bot>
 
 <!-- Flat without body shading: one flat color -->

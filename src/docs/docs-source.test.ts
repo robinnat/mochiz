@@ -259,6 +259,16 @@ describe('the documentation says what the code does', () => {
     expect(styles).toContain(`below ${CADENCE_FULL_MS} ms`)
   })
 
+  it('the Plush page credits open-bot-avatar and gives the real load threshold of the coat', async () => {
+    const { FUR_DOWN_MS, FUR_LEVELS } = await import('@/ui/3d/fur')
+    const styles = read('docs/styles.md')
+    expect(styles).toContain('[open-bot-avatar](https://github.com/DominikScholz/open-bot-avatar) by Dominik Scholz (MIT License)')
+    expect(read('LICENSE')).toContain('Copyright (c) 2026 Dominik Scholz')
+    expect(styles).toContain(`costs more than ${FUR_DOWN_MS} ms per frame`)
+    expect(FUR_LEVELS).toEqual([1, 0.6, 0.35])
+    expect(styles).toContain('about 60 %, then about a third')
+  })
+
   it('the Node version is the same in package.json and the READMEs', () => {
     const pkg = JSON.parse(read('package.json'))
     expect(pkg.engines.node).toBe('>=22.12.0')

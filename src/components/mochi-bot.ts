@@ -93,7 +93,7 @@ export interface MochiBotProps {
  * setting. The old `large` falls back to `medium`.
  */
   pixel: PixelSizeId | undefined
-  /** Ground shadow under the body, in all three styles (default: yes). */
+  /** Ground shadow under the body, in every style (default: yes). */
   shadow: boolean
   /**
    * Shading of the body volume, Flat and Pixel styles (default: yes): the relief. `false`: one flat body color, eyes
