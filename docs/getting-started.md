@@ -216,11 +216,11 @@ There are four styles, all in real 3D. The model is the same, only the drawing c
 <!-- Flat: two or three flat tones -->
 <mochi-bot render-style="flat3d"></mochi-bot>
 
-<!-- Plush: a coat of fur and dark bead eyes -->
-<mochi-bot render-style="plush"></mochi-bot>
+<!-- Plush: a coat of fur and dark bead eyes (give it a color: on the default ink, the eyes do not show) -->
+<mochi-bot render-style="plush" color="sky"></mochi-bot>
 ```
 
-Plush asks about twice as much of the graphics card as Soft: use it for a few Mochiz on screen, not for a crowd. Its eyes stay dark in both themes. How it is drawn: [Styles](styles.md#plush-a-coat-of-fur).
+Plush asks about twice as much of the graphics card as Soft: use it for a few Mochiz on screen, not for a crowd. Its eyes stay dark in both themes, so pick a body color that is not too dark (the default color, `ink`, hides them). How it is drawn: [Styles](styles.md#plush-a-coat-of-fur).
 
 A few more options change the look. `yaw` and `shadow` work in every style; `shading` only in Flat and Pixel (Soft and Plush are always shaded):
 

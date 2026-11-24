@@ -33,6 +33,8 @@ Plush dresses the Soft body in a coat of fur. The technique is the "fluffy" mate
 - **Color** (`furDye.ts`): each body color becomes a ramp from the darkest recess to the brightest tip, so every color keeps its hue through the shading.
 - **Detail follows size and load** (`fur.ts`): a small Mochi draws fewer shells and part of its strands, each one wider, so the coat covers the same. When drawing all the Mochiz of the page costs more than 7 ms per frame, the coats get lighter (about 60 %, then about a third of the full coat), before the frame rate has to halve. A still image (`frozen-at`) always gets the full coat.
 
+**Color.** The bead eyes are dark in both themes: on a very dark body (the default color, `ink`) they do not show, so give a Plush Mochi a lighter color.
+
 **Cost.** Plush asks about twice as much of the graphics card as Soft. It is best with a few Mochiz on screen (an avatar, a mascot, a hero image). For a page with many animated Mochiz, or for older phones, prefer Soft, Flat or Pixel. Accessories, the ground shadow, moods and reactions work as in Soft.
 
 ## 3D shapes
