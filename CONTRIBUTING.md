@@ -68,6 +68,22 @@ There is no formatter or linter config: follow the code around you.
 - The CI must be green. `main` is protected: every change goes through a pull request and the
   `verifie` check (install, build, test) has to pass before it can be merged.
 
+## Releases (maintainers)
+
+A GitHub release publishes the package to npm. Nobody runs `npm publish` by hand.
+
+1. On a branch, bump `version` in `package.json` (for example `0.3.0`) and move the `[Unreleased]` lines of
+   [CHANGELOG.md](CHANGELOG.md) under the new version.
+2. Open a pull request, wait for the green CI, merge it into `main`.
+3. Create a GitHub release on that commit, with the tag `v` + the version (for example `v0.3.0`).
+4. Publishing the release starts `.github/workflows/publish.yml`. It checks that the tag matches
+   `package.json`, runs the tests, builds the library and publishes to npm.
+
+The job signs in with npm [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC, short-lived): no
+npm token is stored in the repository. npm adds provenance on its own. A version with a suffix (`0.4.0-beta.1`) goes
+to the `next` tag on npm, not `latest`. If the job fails for a reason outside the code, run it again from the
+Actions tab ("Run workflow", with the same tag).
+
 ## License
 
 By contributing, you agree that your contribution is released under the [MIT License](LICENSE)

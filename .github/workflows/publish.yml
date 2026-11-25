@@ -1,0 +1,75 @@
+name: publish
+# Publishes the package to npm when a GitHub release is published.
+# Authentication is npm "trusted publishing" (OIDC): no npm token is stored anywhere.
+# The trusted publisher on npmjs.com must name this exact file: publish.yml.
+# Provenance is added automatically by npm (public repository, public package).
+on:
+  release:
+    types: [published]
+  # To run it again by hand for an existing release (for example after a network failure).
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish, for example v0.3.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+# Never two publications at the same time; never cancel one that has started.
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # release: the tag of the release; workflow_dispatch: the tag given by hand
+          ref: ${{ inputs.tag || github.ref }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      # No dependency cache here, on purpose: a publishing job only uses what the lockfile pins.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: npm 11.5.1 or later (required by trusted publishing)
+        run: |
+          if ! node -e 'const [a,b,c]=process.argv[1].split(".").map(Number);process.exit(a>11||(a===11&&(b>5||(b===5&&c>=1)))?0:1)' "$(npm -v)"; then
+            npm install -g npm@11
+          fi
+          echo "node $(node -v), npm $(npm -v)"
+
+      - name: The release tag matches the version in package.json
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "::error::Release tag '$TAG' does not match package.json version '$VERSION' (expected tag 'v$VERSION')."
+            exit 1
+          fi
+          NAME=$(node -p 'require("./package.json").name')
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "::error::$NAME@$VERSION is already on npm. Bump the version first."
+            exit 1
+          fi
+          echo "Publishing $NAME@$VERSION from $TAG"
+
+      - run: pnpm install --frozen-lockfile
+
+      # `prepublishOnly` runs the tests and `build:lib` once, so they are not repeated here.
+      # A version with a suffix (0.4.0-beta.1) goes to the `next` dist-tag, never to `latest`.
+      - name: Publish to npm (trusted publishing, no token)
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          case "$VERSION" in
+            *-*) npm publish --tag next ;;
+            *) npm publish ;;
+          esac

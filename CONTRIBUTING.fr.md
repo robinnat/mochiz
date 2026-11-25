@@ -72,6 +72,22 @@ Il n'y a pas de configuration de formateur ni de linter : suivez le code autour.
 - La CI doit être verte. `main` est protégée : chaque changement passe par une pull request, et le
   contrôle `verifie` (installation, build, tests) doit réussir avant de pouvoir merger.
 
+## Versions publiées (mainteneurs)
+
+Une release GitHub publie le paquet sur npm. Personne ne lance `npm publish` à la main.
+
+1. Sur une branche, changez `version` dans `package.json` (par exemple `0.3.0`) et déplacez les lignes de
+   `[Unreleased]` de [CHANGELOG.md](CHANGELOG.md) sous la nouvelle version.
+2. Ouvrez une pull request, attendez que la CI soit verte, mergez-la dans `main`.
+3. Créez une release GitHub sur ce commit, avec le tag `v` + la version (par exemple `v0.3.0`).
+4. La publication de la release lance `.github/workflows/publish.yml`. Il vérifie que le tag correspond à
+   `package.json`, lance les tests, construit la bibliothèque et publie sur npm.
+
+Le job se connecte avec le [trusted publishing](https://docs.npmjs.com/trusted-publishers) de npm (OIDC, de courte
+durée) : aucun jeton npm n'est stocké dans le dépôt. npm ajoute la provenance tout seul. Une version avec un suffixe
+(`0.4.0-beta.1`) part sur le tag `next` de npm, pas `latest`. Si le job échoue pour une raison extérieure au code,
+relancez-le depuis l'onglet Actions (« Run workflow », avec le même tag).
+
 ## Licence
 
 En contribuant, vous acceptez que votre contribution soit publiée sous la [licence MIT](LICENSE) de
