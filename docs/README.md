@@ -6,6 +6,7 @@ These pages are the documentation of Mochiz. The website shows exactly the same 
 
 - [Getting started](getting-started.md): install, your first Mochi, options, moods, reactions, methods, events, accessories, styles, frameworks.
 - [Reference](reference.md): every option, method, event and id.
+- [Changelog](../CHANGELOG.md): what changed in each version.
 
 ## How it works (for contributors)
 

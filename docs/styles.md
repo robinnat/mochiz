@@ -33,7 +33,7 @@ Plush dresses the Soft body in a coat of fur. The technique is the "fluffy" mate
 - **Color** (`furDye.ts`): each body color becomes a ramp from the darkest recess to the brightest tip, so every color keeps its hue through the shading.
 - **Detail follows size and load** (`fur.ts`): a small Mochi draws fewer shells and part of its strands, each one wider, so the coat covers the same. When drawing all the Mochiz of the page costs more than 7 ms per frame, the coats get lighter (about 60 %, then about a third of the full coat), before the frame rate has to halve. A still image (`frozen-at`) always gets the full coat.
 
-**Color.** The bead eyes take the eye color of the theme, like every style: white in light, black in dark. Around each bead the pressed fur makes a shadow, and the bead keeps a small shine, so the eyes read on every body color, light ones (`cream`, white) included. In the dark theme a very dark body (the default color, `ink`) is lightened just enough for the black beads to show, as in the other styles.
+**Color.** The bead eyes take the eye color of the theme, like every style: white in light, black in dark. Around each bead the pressed fur makes a soft shadow, in the fur's own color, with no outline around the bead. The bead keeps a small shine, so the eyes read on every body color, light ones (`cream`, white) included. In the dark theme a very dark body (the default color, `ink`) is lightened just enough for the black beads to show, as in the other styles.
 
 **Cost.** Plush asks about twice as much of the graphics card as Soft. It is best with a few Mochiz on screen (an avatar, a mascot, a hero image). For a page with many animated Mochiz, or for older phones, prefer Soft, Flat or Pixel. Accessories, the ground shadow, moods and reactions work as in Soft.
 
@@ -66,10 +66,10 @@ The shadow is a smooth, matte ramp of `dot(normal, light)`, with the light at th
 
 Flat uses the `toon` material and Pixel the `pixel` material: the render style picks the material, there is no option for it. Other materials stay in the code but are not offered: `flat` (two tones only, judged too heavy), `toon-outline`, `lowpoly` and `realistic` (internal only). There is no cartoon outline option (removed in 0.2.0); the thin outline of the Pixel style is part of its drawing.
 
-Screenshots (taken before Plush): [Soft, Flat and Flat without shading](variants/3d-styles-sheet.png), [every shape in each style](variants/3d-shapes-sheet.png) and [every shape seen from four angles](variants/3d-turntable.png).
+To see every style and every shape, open the [styles](https://mochiz.vercel.app/#styles) and [shapes](https://mochiz.vercel.app/#shapes) sections of the home page: the shapes grid switches between the four styles. Its images are made from the 3D by `tools/renders.html`.
 
 ## Known limits
 
 - Cost per frame: measured in a browser without a GPU (a worst case) for three animated 3D Mochiz, 2.7 ms of JavaScript update and about 21 ms of software rendering. On a real GPU the rendering is negligible, except for Plush (about twice the cost of Soft, see above). Still images (`frozen-at`) render only once.
 - `<foreignObject>` in Safari on iPhone is not tested yet.
-- 3D GIFs are heavy (about 800 kB for 3 s): gradients make many colors, and a GIF keeps 256.
+- In the repository's image tools (`src/ui/export.ts`), 3D GIFs are heavy (about 800 kB for 3 s): gradients make many colors, and a GIF keeps 256. The library itself has no export.

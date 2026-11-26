@@ -10,7 +10,7 @@ anciennes ne sont pas corrigées.
 
 | Version | Suivie |
 | --- | --- |
-| Dernière version npm (0.2.x) | Oui |
+| Dernière version npm (0.3.x) | Oui |
 | `main` (dernière) | Oui |
 | Toute version plus ancienne | Non |
 

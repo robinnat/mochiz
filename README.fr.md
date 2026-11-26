@@ -47,6 +47,7 @@ La documentation est dans [docs/](docs/README.md), en anglais. Le site montre le
 
 - [Getting started](docs/getting-started.md) : installation, premier Mochi, options, humeurs, réactions, méthodes, événements, accessoires, styles, frameworks.
 - [Reference](docs/reference.md) : toutes les options, méthodes, événements et identifiants.
+- [Changelog](CHANGELOG.md) : ce qui a changé dans chaque version.
 - [How it works](docs/README.md#how-it-works-for-contributors) : architecture et notes de conception pour contribuer.
 
 ## Développement

@@ -7,8 +7,8 @@ import { EXPRESSIONS } from '@/bot/expressions'
 import { SEQUENCE } from '@/bot/states'
 import { RENDER_STYLES, PIXEL_SIZES } from '@/ui/renderStyle'
 import { MochiBotElement, PROPERTIES, attributeOf } from '@/components/mochi-bot'
-import { pagesOf, parseMarkdown, type Block } from './markdown'
-import { PAGES } from './Docs'
+import { ROOT_PAGES, pagesOf, parseInline, parseMarkdown, repoPathOf, type Block, type Inline } from './markdown'
+import { GROUPS, PAGES } from './Docs'
 import { tagsOf } from './preview'
 
 /**
@@ -43,13 +43,15 @@ const id = (cell: string) => cell.replace(/`/g, '').trim()
 
 describe('one documentation for the site and the repository', () => {
   it('docs/README.md lists every page of docs/, and every listed page exists', () => {
-    const listed = pagesOf(INDEX).map((p) => p.file).sort()
+    const listed = pagesOf(INDEX).map((p) => p.file).filter((f) => !f.startsWith('../')).sort()
     const files = DOC_FILES.filter((f) => f !== 'README.md').sort()
     expect(listed).toEqual(files)
+    // the root files shown on the site are listed too, with their path from docs/, and nothing else of the root
+    expect(pagesOf(INDEX).map((p) => p.file).filter((f) => f.startsWith('../'))).toEqual(ROOT_PAGES.map((f) => '../' + f))
   })
 
   it('the site shows exactly the Markdown files of the repository, nothing else', () => {
-    expect(PAGES.map((p) => p.file).sort()).toEqual(['README.md', ...DOC_FILES.filter((f) => f !== 'README.md').map((f) => 'docs/' + f)].sort())
+    expect(PAGES.map((p) => p.file).sort()).toEqual(['README.md', ...ROOT_PAGES, ...DOC_FILES.filter((f) => f !== 'README.md').map((f) => 'docs/' + f)].sort())
     for (const p of PAGES) expect(p.source, p.file).toBe(read(p.file))
     // the docs page has no text of its own: it only renders those files
     const docsPage = readFileSync(new URL('./Docs.ts', import.meta.url), 'utf8')
@@ -73,11 +75,68 @@ describe('one documentation for the site and the repository', () => {
   })
 
   it('no em dash and no French in the English documentation', () => {
-    for (const f of ['README.md', ...DOC_FILES.map((x) => 'docs/' + x)]) {
+    for (const f of ['README.md', 'CHANGELOG.md', ...DOC_FILES.map((x) => 'docs/' + x)]) {
       const text = read(f)
       expect(text, f).not.toMatch(/[—–]/)
       expect(text, f).not.toMatch(/\b(les|une|avec|dans|pour|sont|cette|humeur|couleur|forme)\b/i)
     }
+  })
+})
+
+describe('the changelog page (/docs?page=changelog)', () => {
+  const CHANGELOG = read('CHANGELOG.md')
+  const page = PAGES.find((p) => p.id === 'changelog')!
+  const blocks = parseMarkdown(page?.source ?? '')
+  /** Every link of a list of inline nodes, nested ones included. */
+  const links = (nodes: Inline[]): Extract<Inline, { t: 'link' }>[] =>
+    nodes.flatMap((n) => (n.t === 'link' ? [n, ...links(n.children)] : 'children' in n ? links(n.children) : []))
+  const textOf = (b: Block): string[] =>
+    b.t === 'heading' || b.t === 'paragraph' || b.t === 'quote' ? [b.text] : b.t === 'list' ? b.items : b.t === 'table' ? [...b.head, ...b.rows.flat()] : []
+
+  it('is CHANGELOG.md itself, not a copy, and is in the menu and the sitemap', async () => {
+    expect(page.file).toBe('CHANGELOG.md')
+    expect(page.source).toBe(CHANGELOG)
+    expect(page.from).toBe('')
+    expect(repoPathOf('../CHANGELOG.md')).toBe('CHANGELOG.md')
+    expect(existsSync(new URL('docs/changelog.md', root)), 'no copy in docs/').toBe(false)
+    expect(GROUPS.flatMap((g) => g.ids)).toContain('changelog')
+    const { sitemap } = await import('../../vite.config')
+    expect(sitemap()).toContain('<loc>https://mochiz.vercel.app/docs?page=changelog</loc>')
+    expect(read('src/site/Footer.ts')).toContain("'/docs?page=changelog'")
+  })
+
+  it('shows every version of CHANGELOG.md, each heading linked to its release when the file gives one', () => {
+    const versions = [...CHANGELOG.matchAll(/^## \[(\d+\.\d+\.\d+)\]/gm)].map((m) => m[1]!)
+    expect(versions.length).toBeGreaterThanOrEqual(4)
+    const headings = blocks.filter((b): b is Extract<Block, { t: 'heading' }> => b.t === 'heading' && b.level === 2)
+    for (const v of versions) {
+      const h = headings.find((x) => x.text.startsWith(`[${v}]`))
+      expect(h, v).toBeDefined()
+      const def = CHANGELOG.match(new RegExp(`^\\[${v.replace(/\./g, '\\.')}\\]:\\s+(\\S+)`, 'm'))?.[1]
+      // a version in brackets is a link: without a `[x.y.z]: url` line it would show its brackets as text
+      expect(def, `${v} has a link definition (or no brackets)`).toBeDefined()
+      expect(links(parseInline(h!.text)).map((l) => l.href), v).toEqual([def])
+    }
+  })
+
+  it('makes every link clickable: no Markdown syntax nor bare address left as text', () => {
+    let count = 0
+    for (const b of blocks) {
+      for (const t of textOf(b)) {
+        const nodes = parseInline(t)
+        count += links(nodes).length
+        const rest = (ns: Inline[]): string[] => ns.flatMap((n) => (n.t === 'text' ? [n.text] : n.t === 'link' || n.t === 'code' ? [] : 'children' in n ? rest(n.children) : []))
+        for (const x of rest(nodes)) {
+          expect(x, t).not.toMatch(/\]\(|^\[[^\]]+\]:/)
+          expect(x, t).not.toMatch(/https?:\/\//)
+        }
+      }
+    }
+    expect(count).toBeGreaterThan(5)
+    // the reference lines at the end of the file are not shown as text
+    expect(blocks.some((b) => textOf(b).some((t) => /^\[[^\]]+\]:\s/.test(t)))).toBe(false)
+    const intro = blocks.find((b): b is Extract<Block, { t: 'paragraph' }> => b.t === 'paragraph')!
+    expect(links(parseInline(intro.text)).map((l) => l.href)).toContain('https://keepachangelog.com/en/1.1.0/')
   })
 })
 
@@ -174,27 +233,14 @@ describe('the documentation says what the code does', () => {
     for (const n of names('mochiz-world/catalog')) expect(catalog[n], n).toBeDefined()
   })
 
-  it('the package is ready for npm (name, peer three) but the published docs never present npm as available', () => {
+  it('the package is on npm (name, peer three), and the docs install it from npm and the CDN', () => {
     const pkg = JSON.parse(read('package.json'))
     expect(pkg.name).toBe('mochiz-world')
     expect(pkg.private).toBeUndefined()
     expect(pkg.peerDependencies.three).toBeDefined()
     expect(pkg.dependencies?.three).toBeUndefined()
     expect(pkg.scripts['build:lib']).toContain('vite.lib.config.ts')
-    // `docs/drafts/PUBLISHED` is created on the day `mochiz-world` is published (see docs/drafts/npm-install.md)
-    if (!existsSync(new URL('docs/drafts/PUBLISHED', root))) {
-      expect(GUIDE).toContain('coming soon')
-      expect(GUIDE).toContain('not on npm yet')
-      const published = [README, read('README.fr.md'), ...DOC_FILES.map((f) => read('docs/' + f))]
-      for (const src of published) {
-        expect(src).not.toContain('cdn.jsdelivr.net/npm/mochiz-world')
-        // no npm command for the package at all, not even one marked as not working: a reader copies commands
-        expect(src).not.toMatch(/\b(npm|pnpm|yarn|bun)\s+(install|i|add)\b[^\n]*\bmochiz-world\b/)
-      }
-      expect(read('docs/drafts/npm-install.md')).toContain('npm install mochiz-world three')
-      return
-    }
-    // published: the docs install with npm, and every CDN link names the version of package.json
+    // published since 0.2.1: the docs install with npm, and every CDN link names the version of package.json
     expect(GUIDE).not.toMatch(/coming soon|not on npm yet/)
     for (const src of [README, read('README.fr.md'), GUIDE]) expect(src).toContain('npm install mochiz-world three')
     const all = [README, read('README.fr.md'), ...DOC_FILES.map((f) => read('docs/' + f))].join('\n')

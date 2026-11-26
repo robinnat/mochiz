@@ -6,15 +6,16 @@ import { Footer } from '@/site/Footer'
 import { CodeBlock } from '@/site/CodeBlock'
 import { Preview } from './preview'
 import { initTheme } from '@/site/theme'
-import { pageIdOf, pagesOf, parseInline, parseMarkdown, siteHref, slug, type Block, type Inline } from './markdown'
+import { pageIdOf, pagesOf, parseInline, parseMarkdown, repoPathOf, siteHref, slug, type Block, type Inline } from './markdown'
 
 /**
- * The /docs page. It has NO text of its own: every page is a Markdown file of the repository (README.md and
- * docs/*.md), read at build time, and the menu is the list of `docs/README.md`. The website and the repository show
+ * The /docs page. It has NO text of its own: every page is a Markdown file of the repository (README.md, docs/*.md
+ * and the root files listed by `docs/README.md`, like CHANGELOG.md), read at build time, and the menu is the list of
+ * `docs/README.md`. The website and the repository show
  * the same documentation; `docs-source.test.ts` fails if they could drift apart.
  */
 
-const FILES = import.meta.glob(['/README.md', '/docs/*.md'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+const FILES = import.meta.glob(['/README.md', '/CHANGELOG.md', '/docs/*.md'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const IMAGES = import.meta.glob('/docs/**/*.{png,gif,svg,jpg}', { query: '?url', import: 'default', eager: true }) as Record<string, string>
 
 export interface DocPage {
@@ -30,23 +31,26 @@ export interface DocPage {
 /** The pages, in the order of `docs/README.md`, with the root README as "Overview" first. */
 export const PAGES: DocPage[] = [
   { id: 'overview', title: 'Overview', file: 'README.md', from: '', source: FILES['/README.md'] ?? '' },
-  ...pagesOf(FILES['/docs/README.md'] ?? '').map((p) => ({
-    id: pageIdOf(p.file),
-    title: p.title,
-    file: 'docs/' + p.file,
-    from: 'docs/' as const,
-    source: FILES['/docs/' + p.file] ?? ''
-  }))
+  ...pagesOf(FILES['/docs/README.md'] ?? '').map((p) => {
+    const file = repoPathOf(p.file)
+    return {
+      id: pageIdOf(p.file),
+      title: p.title,
+      file,
+      from: file.startsWith('docs/') ? ('docs/' as const) : ('' as const),
+      source: FILES['/' + file] ?? ''
+    }
+  })
 ]
 
 /** Groups of the menu: the headings of `docs/README.md` and the pages under each. */
-const GROUPS: { title: string; ids: string[] }[] = (() => {
+export const GROUPS: { title: string; ids: string[] }[] = (() => {
   const groups: { title: string; ids: string[] }[] = [{ title: 'Start here', ids: ['overview'] }]
   for (const line of (FILES['/docs/README.md'] ?? '').split('\n')) {
     const g = line.match(/^##\s+(.*)$/)
     if (g) groups.push({ title: g[1]!, ids: [] })
-    const p = line.match(/^\s*-\s+\[[^\]]+\]\(([\w-]+\.md)\)/)
-    if (p && groups.length) groups[groups.length - 1]!.ids.push(pageIdOf(p[1]!))
+    const p = pagesOf(line)[0]
+    if (p && groups.length) groups[groups.length - 1]!.ids.push(pageIdOf(p.file))
   }
   return groups.filter((g) => g.ids.length)
 })()
@@ -89,6 +93,10 @@ function inline(nodes: Inline[], from: '' | 'docs/'): Child[] {
 }
 
 const text = (s: string, from: '' | 'docs/') => inline(parseInline(s), from)
+
+/** The same, without links: for text that is already inside a link (the section list of the menu). */
+const unlinked = (nodes: Inline[]): Inline[] => nodes.flatMap((n) => (n.t === 'link' ? unlinked(n.children) : [n]))
+const plainText = (s: string, from: '' | 'docs/') => inline(unlinked(parseInline(s)), from)
 
 /** Raw HTML of a Markdown file (the README banner): our own content, with image paths resolved. */
 const rawHtml = (html: string, from: '' | 'docs/') =>
@@ -226,7 +234,7 @@ export const Docs: Component<Record<string, never>> = () => {
                         ? h(
                             'ul',
                             { class: 'docs-toc-sub' },
-                            sections.map((s) => h('li', { key: s.id }, h('a', { href: '#' + s.id, 'aria-current': current.value === s.id ? 'true' : undefined }, text(s.text, page.from))))
+                            sections.map((s) => h('li', { key: s.id }, h('a', { href: '#' + s.id, 'aria-current': current.value === s.id ? 'true' : undefined }, plainText(s.text, page.from))))
                           )
                         : null
                     )

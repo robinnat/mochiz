@@ -9,7 +9,7 @@ are supported. Fixes land on `main`, then in a new release; older versions are n
 
 | Version | Supported |
 | --- | --- |
-| Latest npm release (0.2.x) | Yes |
+| Latest npm release (0.3.x) | Yes |
 | `main` (latest) | Yes |
 | Anything older | No |
 

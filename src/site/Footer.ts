@@ -14,6 +14,7 @@ export const Footer: Component<Record<string, never>> = () => () =>
         'nav',
         { class: 'footer-links', 'aria-label': 'Footer' },
         h('a', { href: '/docs' }, 'Docs'),
+        h('a', { href: '/docs?page=changelog' }, 'Changelog'),
         h('a', { href: 'https://github.com/robinnat/mochiz' }, 'GitHub'),
         h('a', { href: 'https://github.com/robinnat/mochiz/blob/main/LICENSE' }, 'License')
       )
