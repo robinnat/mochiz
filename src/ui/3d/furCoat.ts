@@ -285,6 +285,8 @@ void main() {
 
   // Around a socket: a crease where the pile is pressed down, and light on its rolled lip.
   float upper = 0., crease = 0., pileRelief = 0., contact = 0., lipLight = 0.;
+  // 0 for a dark bead (as ported), 1 for a white one
+  float lightBeadK = smoothstep(.3, .7, max(uInk.r, max(uInk.g, uInk.b)));
   if (d < 3.7) {
     vec2 texel = 1. / vec2(${SOCKET_W}., ${SOCKET_H}.);
     vec2 g = vec2(texture(uSock, uv + vec2(texel.x, 0)).r - texture(uSock, uv - vec2(texel.x, 0)).r,
@@ -297,13 +299,14 @@ void main() {
     if (pass == STRAND) {
       pileRelief = ((tip - .46) * .16 + (fibers - .48) * .11) * (1. - smoothstep(1.5, 3.65, d));
     }
-    contact = (1. - smoothstep(-.04, .38, d)) * mix(.35, 1., buried);
+    // A white bead (light theme): no dark line at its contour; the fur around it is shaded in a wider, softer ring.
+    contact = (1. - smoothstep(-.04, mix(.38, 1.9, lightBeadK), d)) * mix(.35, 1., buried) * mix(1., .55, lightBeadK);
     float lip = smoothstep(.03, .49, d) * (1. - smoothstep(1.10, 3.65, d));
     float gathered = clamp(.22 - .52 * outward.x + 1.14 * outward.y, 0., 1.22);
     float tipLight = .14 + .22 * fibers;
     lipLight = tipLight * gathered * lip * mix(.40, 1., local.z);
   }
-  float occlusion = crease * (.76 + .18 * upper);
+  float occlusion = crease * (.76 + .18 * upper) * mix(1., .62, lightBeadK);
   float fiberLight = (sheen + .46 * grazing * backlit * rimExposure) * (1. - crease) + lipLight;
   diffuseLevel = (diffuseLevel * (1. - .48 * occlusion) + pileRelief) * (1. - (.36 + .04 * upper) * contact);
 
@@ -334,12 +337,12 @@ void main() {
     float coatBounce = .003 + .018 * pow(1. - clamp(beadNormal.z, 0., 1.), 1.6);
     float inkValue = max(uInk.r, max(uInk.g, uInk.b));
     // The bead takes the eye color of the theme (white in light, black in dark), like the eyes of the other styles.
-    // A dark bead: as ported. A light bead: a porcelain dome kept a shade under its color, darker where the lip of
-    // the socket shades its edge, so that the reflection and the socket still read on it.
+    // A dark bead: as ported. A light bead: a porcelain dome kept a shade under its color so the reflection still
+    // reads, its edge white or barely shaded (no dark line): the sunk look comes from the soft shade of the fur.
     vec3 darkBead = uInk * sqrt(inkValue) * (.40 + .24 * beadNormal.z + .24 * inkValue) + uColor * coatBounce;
-    float rimShade = mix(.70, 1., smoothstep(-.05, 1.1, -d));
-    vec3 lightBead = uInk * (.80 + .13 * beadNormal.z) * rimShade + uColor * coatBounce * 3.;
-    float light = smoothstep(.3, .7, inkValue);
+    float rimShade = mix(.94, 1., smoothstep(-.05, 1.1, -d));
+    vec3 lightBead = uInk * (.86 + .10 * beadNormal.z) * rimShade + uColor * coatBounce * 3.;
+    float light = lightBeadK;
     vec3 bead = mix(darkBead, lightBead, light);
     vec3 reflection = mix(vec3(1.), uColor, .28) * stripLight + mix(vec3(1.), uColor, .72) * sideLight;
     bead += reflection * smoothstep(-.12, .55, -d) * mix(1., .8, light);
