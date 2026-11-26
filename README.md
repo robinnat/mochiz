@@ -45,6 +45,7 @@ The documentation lives in [docs/](docs/README.md). The website shows the same p
 
 - [Getting started](docs/getting-started.md): install, your first Mochi, options, moods, reactions, methods, events, accessories, styles, frameworks.
 - [Reference](docs/reference.md): every option, method, event and id.
+- [Changelog](CHANGELOG.md): what changed in each version.
 - [How it works](docs/README.md#how-it-works-for-contributors): architecture and design notes for contributors.
 
 ## Development

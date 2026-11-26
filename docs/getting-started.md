@@ -38,6 +38,8 @@ Load the standalone build (Three.js included) from a CDN, with a script tag:
 <script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.3.1/dist-lib/standalone/mochiz.js"></script>
 ```
 
+The address names a version: the number after `@`. To update later, change that number. The [Changelog](../CHANGELOG.md) lists every version and what changed.
+
 ### Without npm: build it from the repository
 
 You can also build the library yourself and copy it into your project:
@@ -221,7 +223,7 @@ There are four styles, all in real 3D. The model is the same, only the drawing c
 <mochi-bot render-style="plush" color="sky"></mochi-bot>
 ```
 
-Plush asks about twice as much of the graphics card as Soft: use it for a few Mochiz on screen, not for a crowd. Its bead eyes follow the theme like the eyes of every style: white in light, black in dark. How it is drawn: [Styles](styles.md#plush-a-coat-of-fur).
+Plush asks about twice as much of the graphics card as Soft: use it for a few Mochiz on screen, not for a crowd. Its bead eyes are pressed into the fur, with no outline, and follow the theme like the eyes of every style: white in light, black in dark. How it is drawn: [Styles](styles.md#plush-a-coat-of-fur).
 
 A few more options change the look. `yaw` and `shadow` work in every style; `shading` only in Flat and Pixel (Soft and Plush are always shaded):
 

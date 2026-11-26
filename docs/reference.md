@@ -14,7 +14,7 @@ Each option is both an attribute (written in HTML, with dashes, as text) and a p
 | `render-style` | `3d`, `pixel3d`, `flat3d` or `plush` | `3d` | Style: Soft, Pixel, Flat or Plush. |
 | `mood` | string | none | Mood played on a loop, see [Moods](#moods). |
 | `accessories` | JSON object | none | Accessories by slot, see [Accessories](#accessories). |
-| `theme` | `light` or `dark` | `currentTheme` (`auto`: the device's theme) | The dark theme turns the eyes black (Plush eyes are dark in both). |
+| `theme` | `light` or `dark` | `currentTheme` (`auto`: the device's theme) | The dark theme turns the eyes black, in every style (Plush included). |
 | `interactions` | boolean | `true` | Reactions to hover, tap, double tap, long press and shake. |
 | `wave` | boolean | `false` | Waves once when it appears. |
 | `follow` | boolean | `false` | The eyes follow the pointer anywhere in the window (turns the reactions off). |
