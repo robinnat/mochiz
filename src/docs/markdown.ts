@@ -1,10 +1,11 @@
 /**
  * A small Markdown reader for the documentation pages.
  *
- * The website's /docs page is built from the repository's own Markdown files (README.md and docs/*.md), so the
- * two can never say different things. This reader only knows what those files use: headings, paragraphs, lists,
- * tables, quotes, fenced code, raw HTML blocks, and inline code, bold, italics, links and images. It is pure (no
- * DOM), so it is tested directly.
+ * The website's /docs page is built from the repository's own Markdown files (README.md, docs/*.md and
+ * CHANGELOG.md), so the two can never say different things. This reader only knows what those files use: headings,
+ * paragraphs, lists, tables, quotes, fenced code, raw HTML blocks, and inline code, bold, italics, links (inline,
+ * reference-style like `[0.3.1]` with a `[0.3.1]: https://...` line, and bare `https://` addresses) and images. It is
+ * pure (no DOM), so it is tested directly.
  */
 
 export type Inline =
@@ -25,9 +26,10 @@ export type Block =
   | { t: 'html'; html: string }
   | { t: 'rule' }
 
-/** GitHub-style heading anchor: `Light and dark` -> `light-and-dark`. */
+/** GitHub-style heading anchor: `Light and dark` -> `light-and-dark`, `[0.3.1](url) - 2026-11-26` -> `031---2026-11-26`. */
 export function slug(text: string): string {
   return text
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
     .toLowerCase()
     .replace(/[`*_]/g, '')
     .replace(/[^\p{L}\p{N}\s-]/gu, '')
@@ -45,9 +47,47 @@ function cells(line: string): string[] {
     .map((c) => c.trim())
 }
 
+/** A link reference definition: `[0.3.1]: https://github.com/...` (the label is case-insensitive). */
+const DEFINITION = /^ {0,3}\[([^\]]+)\]:\s+(\S+)\s*$/
+
+/**
+ * Resolves reference-style links, as GitHub does: the `[label]: url` lines are taken out, and every `[label]` that
+ * has a definition (and is not already a link) becomes `[label](url)`. Code (fenced or inline) is left alone. The
+ * changelog uses them for its versions: `## [0.3.1] - 2026-11-26`.
+ */
+export function resolveReferences(lines: string[]): string[] {
+  const defs = new Map<string, string>()
+  let fenced = false
+  const kept: string[] = []
+  for (const line of lines) {
+    if (line.startsWith('```')) fenced = !fenced
+    const d = !fenced && line.match(DEFINITION)
+    if (d) defs.set(d[1]!.toLowerCase(), d[2]!)
+    else kept.push(line)
+  }
+  if (!defs.size) return kept
+  fenced = false
+  return kept.map((line) => {
+    if (line.startsWith('```')) fenced = !fenced
+    if (fenced) return line
+    // even parts are outside inline code, odd parts inside
+    return line
+      .split(/(`[^`]*`)/)
+      .map((part, i) =>
+        i % 2
+          ? part
+          : part.replace(/(?<![\]!\\])\[([^\[\]]+)\](?![(:[])/g, (m, label: string) => {
+              const url = defs.get(label.toLowerCase())
+              return url ? `[${label}](${url})` : m
+            })
+      )
+      .join('')
+  })
+}
+
 /** Reads a Markdown document into blocks. */
 export function parseMarkdown(src: string): Block[] {
-  const lines = src.replace(/\r\n/g, '\n').split('\n')
+  const lines = resolveReferences(src.replace(/\r\n/g, '\n').split('\n'))
   const out: Block[] = []
   let i = 0
   const isBlockStart = (l: string) => /^(#{1,6}\s|```|>|\s*[-*]\s|\s*\d+\.\s|\||<|---\s*$)/.test(l)
@@ -120,11 +160,15 @@ export function parseMarkdown(src: string): Block[] {
   return out
 }
 
-/** Reads the inline part of a line: code, images, links (an image inside a link too, like a badge), bold and italics. */
+/**
+ * Reads the inline part of a line: code, images, links (an image inside a link too, like a badge), bold, italics,
+ * and bare `https://` addresses, which GitHub shows as links too (a final `.`, `,`, `;`, `:`, `!` or `?` is not part of
+ * the address).
+ */
 export function parseInline(src: string): Inline[] {
   const out: Inline[] = []
   const re =
-    /`([^`]+)`|\[!\[([^\]]*)\]\(([^)\s]+)\)\]\(([^)\s]+)\)|!\[([^\]]*)\]\(([^)\s]+)\)|\[([^\]]+)\]\(([^)\s]+)\)|\*\*(.+?)\*\*|(?<![\w*])\*([^*\s][^*]*?)\*(?![\w*])/g
+    /`([^`]+)`|\[!\[([^\]]*)\]\(([^)\s]+)\)\]\(([^)\s]+)\)|!\[([^\]]*)\]\(([^)\s]+)\)|\[([^\]]+)\]\(([^)\s]+)\)|\*\*(.+?)\*\*|(?<![\w*])\*([^*\s][^*]*?)\*(?![\w*])|(?<![\w/])(https?:\/\/[^\s<>()`]*[^\s<>()`.,;:!?])/g
   let last = 0
   for (const m of src.matchAll(re)) {
     if (m.index! > last) out.push({ t: 'text', text: src.slice(last, m.index) })
@@ -134,19 +178,37 @@ export function parseInline(src: string): Inline[] {
     else if (m[8] !== undefined) out.push({ t: 'link', href: m[8], children: parseInline(m[7]!) })
     else if (m[9] !== undefined) out.push({ t: 'strong', children: parseInline(m[9]) })
     else if (m[10] !== undefined) out.push({ t: 'em', children: parseInline(m[10]) })
+    else if (m[11] !== undefined) out.push({ t: 'link', href: m[11], children: [{ t: 'text', text: m[11] }] })
     last = m.index! + m[0].length
   }
   if (last < src.length) out.push({ t: 'text', text: src.slice(last) })
   return out
 }
 
-/** The pages listed by `docs/README.md`, in order: `[Title](file.md)` gives `{ file, title }`. */
+/**
+ * Files of the repository root that are also doc pages. `docs/README.md` lists them like the others, with a path
+ * from `docs/`: `[Changelog](../CHANGELOG.md)`. The file stays where every project keeps it, and is not copied.
+ */
+export const ROOT_PAGES = ['CHANGELOG.md']
+
+/** A page line of `docs/README.md`: `- [Title](file.md)`, or `- [Title](../FILE.md)` for a root page. */
+const PAGE_LINE = /^\s*-\s+\[([^\]]+)\]\(((?:\.\.\/)?[\w-]+\.md)\)/
+
+/** The pages listed by `docs/README.md`, in order: `[Title](file.md)` gives `{ file, title }` (`file` as written). */
 export function pagesOf(index: string): { file: string; title: string }[] {
-  return [...index.matchAll(/^\s*-\s+\[([^\]]+)\]\(([\w-]+\.md)\)/gm)].map((m) => ({ title: m[1]!, file: m[2]! }))
+  return index
+    .split('\n')
+    .map((l) => l.match(PAGE_LINE))
+    .filter((m) => m !== null)
+    .map((m) => ({ title: m[1]!, file: m[2]! }))
 }
 
-/** The page id of a Markdown file: `getting-started.md` -> `getting-started`, the root README -> `overview`. */
-export const pageIdOf = (file: string) => (/(^|\/)README\.md$/.test(file) && !file.includes('docs/') ? 'overview' : file.replace(/^.*\//, '').replace(/\.md$/, ''))
+/** Path in the repository of a page listed by `docs/README.md`: `reference.md` -> `docs/reference.md`, `../CHANGELOG.md` -> `CHANGELOG.md`. */
+export const repoPathOf = (file: string) => (file.startsWith('../') ? file.slice(3) : 'docs/' + file)
+
+/** The page id of a Markdown file: `getting-started.md` -> `getting-started`, `CHANGELOG.md` -> `changelog`, the root README -> `overview`. */
+export const pageIdOf = (file: string) =>
+  /(^|\/)README\.md$/.test(file) && !file.includes('docs/') ? 'overview' : file.replace(/^.*\//, '').replace(/\.md$/, '').toLowerCase()
 
 export const REPO = 'https://github.com/robinnat/mochiz'
 
@@ -165,5 +227,6 @@ export function siteHref(href: string, from: '' | 'docs/'): string {
   const doc = full.match(/^docs\/([\w-]+)\.md$/)
   if (doc) return `/docs?page=${doc[1]}${hash ? '#' + hash : ''}`
   if (full === 'README.md') return `/docs?page=overview${hash ? '#' + hash : ''}`
+  if (ROOT_PAGES.includes(full)) return `/docs?page=${pageIdOf(full)}${hash ? '#' + hash : ''}`
   return `${REPO}/blob/main/${full}${hash ? '#' + hash : ''}`
 }
