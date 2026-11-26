@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   FUR,
@@ -15,7 +16,8 @@ import {
   rootVolume,
   surfaceArea
 } from './fur'
-import { DYE_RAMP_RANGE, DYE_RAMP_SIZE, dyeRamp, oklch, rgbOf, toOklch } from './furDye'
+import { beadInk, DYE_RAMP_RANGE, DYE_RAMP_SIZE, dyeRamp, oklch, rgbOf, toOklch } from './furDye'
+import { DARK_EYE, eyeColor, THEMES } from './theme'
 import { exposedHeight, signedField, socketRect } from './furSocket'
 
 /**
@@ -170,5 +172,40 @@ describe('eye sockets', () => {
   it('an open bead is partly buried in the pile', () => {
     expect(exposedHeight(10, 10)).toBeCloseTo(0.8, 6)
     expect(exposedHeight(10, 25)).toBeCloseTo(0.625, 6)
+  })
+})
+
+/**
+ * Plush bead eyes follow the eye rule of every style (Robin, 26/11/2026): WHITE in the light theme, BLACK in the dark
+ * one, from the same source (`eyeColor` in `theme.ts`). Only the bead shading is Plush's own.
+ */
+describe('plush bead color', () => {
+  const read = (f: string) => readFileSync(new URL(f, import.meta.url), 'utf8')
+  const PAPER = '#f9f9f9'
+
+  it('is the theme eye color: white (the paper) in light, black in dark', () => {
+    expect(beadInk(eyeColor('light', PAPER))).toEqual(rgbOf(PAPER).map((v) => v / 255))
+    expect(beadInk(eyeColor('dark', PAPER))).toEqual(rgbOf(DARK_EYE).map((v) => v / 255))
+    for (const theme of THEMES) {
+      const lightest = Math.min(...beadInk(eyeColor(theme, PAPER)))
+      const darkest = Math.max(...beadInk(eyeColor(theme, PAPER)))
+      if (theme === 'light') expect(lightest).toBeGreaterThan(0.95)
+      else expect(darkest).toBeLessThan(0.05)
+    }
+  })
+
+  it('the scene hands the coat the eye color it paints the other styles with', () => {
+    const scene = read('./scene3d.ts')
+    const update = scene.slice(scene.indexOf('  update(frame: BotFrame, color: string, paper: string)'))
+    // the theme's eye color is computed once, then given to the painted eyes AND to the coat's beads
+    expect(update.indexOf('paper = eyeColor(this.theme, paper)')).toBeGreaterThan(0)
+    expect(update).toMatch(/this\.coat\.update\(mt\.geo, color, paper, /)
+  })
+
+  it('the coat keeps no bead color of its own', () => {
+    const coat = read('./furCoat.ts')
+    expect(coat).not.toMatch(/const INK\b/)
+    expect(coat).not.toMatch(/in both themes/)
+    expect(coat).toMatch(/u\.uInk!\.value = beadInk\(eye\)/)
   })
 })

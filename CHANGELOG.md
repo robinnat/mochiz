@@ -5,6 +5,13 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Plush eyes follow the theme**, like the eyes of every other style: white bead eyes in the light theme, black in
+  the dark one (they were dark in both themes). The beads keep their look: pressed into the fur, with the shadow of
+  the socket around them and a small shine. On the default color (`ink`), Plush eyes now show in the light theme; in
+  the dark theme the body is lightened just enough for the black beads, as in the other styles.
+
 ## [0.3.0] - 2026-11-25
 
 ### Added (Plush)
