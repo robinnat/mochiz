@@ -34,7 +34,7 @@ npm install mochiz-world three
 Importez-la une fois (`import 'mochiz-world'`), puis écrivez la balise. Dans une page HTML simple, chargez-la plutôt depuis un CDN :
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.3.0/dist-lib/standalone/mochiz.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.3.1/dist-lib/standalone/mochiz.js"></script>
 
 <mochi-bot shape="star" color="blue" mood="idle" size="200" wave></mochi-bot>
 ```
