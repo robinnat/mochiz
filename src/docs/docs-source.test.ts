@@ -75,7 +75,7 @@ describe('one documentation for the site and the repository', () => {
   })
 
   it('no em dash and no French in the English documentation', () => {
-    for (const f of ['README.md', ...DOC_FILES.map((x) => 'docs/' + x)]) {
+    for (const f of ['README.md', 'CHANGELOG.md', ...DOC_FILES.map((x) => 'docs/' + x)]) {
       const text = read(f)
       expect(text, f).not.toMatch(/[—–]/)
       expect(text, f).not.toMatch(/\b(les|une|avec|dans|pour|sont|cette|humeur|couleur|forme)\b/i)
@@ -231,27 +231,14 @@ describe('the documentation says what the code does', () => {
     for (const n of names('mochiz-world/catalog')) expect(catalog[n], n).toBeDefined()
   })
 
-  it('the package is ready for npm (name, peer three) but the published docs never present npm as available', () => {
+  it('the package is on npm (name, peer three), and the docs install it from npm and the CDN', () => {
     const pkg = JSON.parse(read('package.json'))
     expect(pkg.name).toBe('mochiz-world')
     expect(pkg.private).toBeUndefined()
     expect(pkg.peerDependencies.three).toBeDefined()
     expect(pkg.dependencies?.three).toBeUndefined()
     expect(pkg.scripts['build:lib']).toContain('vite.lib.config.ts')
-    // `docs/drafts/PUBLISHED` is created on the day `mochiz-world` is published (see docs/drafts/npm-install.md)
-    if (!existsSync(new URL('docs/drafts/PUBLISHED', root))) {
-      expect(GUIDE).toContain('coming soon')
-      expect(GUIDE).toContain('not on npm yet')
-      const published = [README, read('README.fr.md'), ...DOC_FILES.map((f) => read('docs/' + f))]
-      for (const src of published) {
-        expect(src).not.toContain('cdn.jsdelivr.net/npm/mochiz-world')
-        // no npm command for the package at all, not even one marked as not working: a reader copies commands
-        expect(src).not.toMatch(/\b(npm|pnpm|yarn|bun)\s+(install|i|add)\b[^\n]*\bmochiz-world\b/)
-      }
-      expect(read('docs/drafts/npm-install.md')).toContain('npm install mochiz-world three')
-      return
-    }
-    // published: the docs install with npm, and every CDN link names the version of package.json
+    // published since 0.2.1: the docs install with npm, and every CDN link names the version of package.json
     expect(GUIDE).not.toMatch(/coming soon|not on npm yet/)
     for (const src of [README, read('README.fr.md'), GUIDE]) expect(src).toContain('npm install mochiz-world three')
     const all = [README, read('README.fr.md'), ...DOC_FILES.map((f) => read('docs/' + f))].join('\n')
