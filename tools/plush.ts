@@ -15,7 +15,7 @@ import { FUR } from '../src/ui/3d/fur'
 const q = new URLSearchParams(location.search)
 const mode = q.get('mode') ?? 'sheet'
 const PAPER = '#f9f9f9'
-const hexOf = (id: string) => COLORS.find((c) => c.id === id)!.hex
+const hexOf = (id: string) => (id.startsWith('#') ? id : COLORS.find((c) => c.id === id)!.hex)
 const FRAME = 150
 
 let renderAvatar: typeof import('../src/ui/3d/scene3d').renderAvatar
@@ -151,7 +151,7 @@ async function bench() {
 ;(async () => {
   ;({ renderAvatar } = await import('../src/ui/3d/scene3d'))
   if (mode === 'single') {
-    // one Mochi on a transparent canvas: ?shape=&color=&style=&yaw=&theme=&size=&t=
+    // one Mochi on a transparent canvas: ?shape=&color=&style=&yaw=&theme=&size=&t= (color: an id or %23rrggbb)
     const cv = tile(q.get('shape') ?? 'capsule', hexOf(q.get('color') ?? 'red'), (q.get('style') ?? 'plush') as Material, Number(q.get('yaw') ?? 0), Number(q.get('t') ?? 0.6), Number(q.get('size') ?? 520), (q.get('theme') ?? 'dark') as Theme)
     cv.id = 'out'
     document.body.style.background = q.get('bg') ?? ((q.get('theme') ?? 'dark') === 'dark' ? '#121212' : '#fbfbf9')

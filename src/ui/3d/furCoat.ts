@@ -3,7 +3,8 @@
  * (`packages/core/src/dom/fluffy/shaders.ts` and `renderer.ts`), Copyright (c) 2026 Dominik Scholz, MIT License (see
  * LICENSE), ported to our scene:
  *
- * - One program draws three kinds of geometry: the body's solid surface with the eyes seated in it as glossy beads,
+ * - One program draws three kinds of geometry: the body's solid surface with the eyes seated in it as glossy beads
+ *   (white in the light theme, black in the dark one, like every style's eyes),
  *   shells of pile lifted off that surface, and single strands on top (tens of thousands, over the whole body). All
  *   three sample the same model-space pile, so the coat holds together as the Mochi turns.
  * - Their shader works in THEIR units and axes (a 100-unit viewBox, y down). Ours: engine units (a Mochi is 200 wide),
@@ -40,13 +41,11 @@ import {
   UnsignedByteType
 } from './three'
 import { FUR, FUR_SCALE, furDetail, pickRoots, rootCount, rootsIn, ROOT_SIDE, rootVolume, surfaceArea, type RootPick } from './fur'
-import { DYE_RAMP_RANGE, DYE_RAMP_SIZE, dyeRamp, rgbOf } from './furDye'
+import { beadInk, DYE_RAMP_RANGE, DYE_RAMP_SIZE, dyeRamp, rgbOf } from './furDye'
 import { exposedHeight, SOCKET_H, SOCKET_W, signedField, socketRect, type SocketRect } from './furSocket'
+import { DARK_EYE } from './theme'
 
 const float = (n: number) => (Number.isInteger(n) ? `${n}.` : `${n}`)
-
-/** Ink of the beads: a deep blue-black, in both themes. */
-const INK: [number, number, number] = [20 / 255, 22 / 255, 34 / 255]
 
 /** Width of the vertex textures (rows of this many vertices). */
 const VERTEX_TEX_W = 1024
@@ -286,6 +285,8 @@ void main() {
 
   // Around a socket: a crease where the pile is pressed down, and light on its rolled lip.
   float upper = 0., crease = 0., pileRelief = 0., contact = 0., lipLight = 0.;
+  // 0 for a dark bead (as ported), 1 for a white one
+  float lightBeadK = smoothstep(.3, .7, max(uInk.r, max(uInk.g, uInk.b)));
   if (d < 3.7) {
     vec2 texel = 1. / vec2(${SOCKET_W}., ${SOCKET_H}.);
     vec2 g = vec2(texture(uSock, uv + vec2(texel.x, 0)).r - texture(uSock, uv - vec2(texel.x, 0)).r,
@@ -298,13 +299,14 @@ void main() {
     if (pass == STRAND) {
       pileRelief = ((tip - .46) * .16 + (fibers - .48) * .11) * (1. - smoothstep(1.5, 3.65, d));
     }
-    contact = (1. - smoothstep(-.04, .38, d)) * mix(.35, 1., buried);
+    // A white bead (light theme): no dark line at its contour; the fur around it is shaded in a wider, softer ring.
+    contact = (1. - smoothstep(-.04, mix(.38, 1.9, lightBeadK), d)) * mix(.35, 1., buried) * mix(1., .55, lightBeadK);
     float lip = smoothstep(.03, .49, d) * (1. - smoothstep(1.10, 3.65, d));
     float gathered = clamp(.22 - .52 * outward.x + 1.14 * outward.y, 0., 1.22);
     float tipLight = .14 + .22 * fibers;
     lipLight = tipLight * gathered * lip * mix(.40, 1., local.z);
   }
-  float occlusion = crease * (.76 + .18 * upper);
+  float occlusion = crease * (.76 + .18 * upper) * mix(1., .62, lightBeadK);
   float fiberLight = (sheen + .46 * grazing * backlit * rimExposure) * (1. - crease) + lipLight;
   diffuseLevel = (diffuseLevel * (1. - .48 * occlusion) + pileRelief) * (1. - (.36 + .04 * upper) * contact);
 
@@ -334,9 +336,16 @@ void main() {
     float sideLight = .13 * exp(-dot(fill, fill));
     float coatBounce = .003 + .018 * pow(1. - clamp(beadNormal.z, 0., 1.), 1.6);
     float inkValue = max(uInk.r, max(uInk.g, uInk.b));
-    vec3 bead = uInk * sqrt(inkValue) * (.40 + .24 * beadNormal.z + .24 * inkValue) + uColor * coatBounce;
+    // The bead takes the eye color of the theme (white in light, black in dark), like the eyes of the other styles.
+    // A dark bead: as ported. A light bead: a porcelain dome kept a shade under its color so the reflection still
+    // reads, its edge white or barely shaded (no dark line): the sunk look comes from the soft shade of the fur.
+    vec3 darkBead = uInk * sqrt(inkValue) * (.40 + .24 * beadNormal.z + .24 * inkValue) + uColor * coatBounce;
+    float rimShade = mix(.94, 1., smoothstep(-.05, 1.1, -d));
+    vec3 lightBead = uInk * (.86 + .10 * beadNormal.z) * rimShade + uColor * coatBounce * 3.;
+    float light = lightBeadK;
+    vec3 bead = mix(darkBead, lightBead, light);
     vec3 reflection = mix(vec3(1.), uColor, .28) * stripLight + mix(vec3(1.), uColor, .72) * sideLight;
-    bead += reflection * smoothstep(-.12, .55, -d);
+    bead += reflection * smoothstep(-.12, .55, -d) * mix(1., .8, light);
     float aa = max(.15, fwidth(d));
     base = mix(bead, base, smoothstep(-aa * .5, aa * .5, d));
   }
@@ -438,6 +447,8 @@ export class FurCoat {
   private readonly sockCanvas: HTMLCanvasElement
   private readonly uniforms: Record<string, { value: unknown }>
   private shellsShown = -1
+  /** bead color the uniform holds (`eyeColor` of the theme) */
+  private eyeOf = ''
 
   constructor() {
     this.posTex = new DataTexture(new Float32Array(VERTEX_CAP * 4), VERTEX_TEX_W, VERTEX_CAP / VERTEX_TEX_W, RGBAFormat, FloatType)
@@ -469,7 +480,7 @@ export class FurCoat {
       uDye: { value: this.dye },
       uRoots: { value: roots3d() },
       uColor: { value: [1, 1, 1] },
-      uInk: { value: INK },
+      uInk: { value: beadInk(DARK_EYE) },
       uOpacity: { value: 1 },
       uPos: { value: this.posTex },
       uNor: { value: this.norTex }
@@ -561,8 +572,11 @@ export class FurCoat {
     this.uniforms.uEyeS!.value = S
   }
 
-  /** Dresses this frame's body `geo` in `color` (`#rrggbb`). `pxPerUnit` and the page's load `level` set the detail. */
-  update(geo: BufferGeometry, color: string, opacity: number, pxPerUnit: number, level = 1) {
+  /**
+   * Dresses this frame's body `geo` in `color` (`#rrggbb`), with bead eyes in `eye` (the theme's eye color,
+   * `eyeColor` in `theme.ts`: white in light, black in dark). `pxPerUnit` and the page's load `level` set the detail.
+   */
+  update(geo: BufferGeometry, color: string, eye: string, opacity: number, pxPerUnit: number, level = 1) {
     const pos = geo.attributes.position as BufferAttribute | undefined
     const nor = geo.attributes.normal as BufferAttribute | undefined
     const index = geo.index
@@ -576,6 +590,10 @@ export class FurCoat {
       ;(this.dye.image.data as Uint8Array).set(dyeRamp(rgb))
       this.dye.needsUpdate = true
       u.uColor!.value = rgb.map((v) => v / 255)
+    }
+    if (eye !== this.eyeOf) {
+      this.eyeOf = eye
+      u.uInk!.value = beadInk(eye)
     }
     u.uOpacity!.value = opacity
     this.body.material.transparent = this.strands.material.transparent = opacity < 1

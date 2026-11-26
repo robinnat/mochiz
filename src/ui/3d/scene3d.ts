@@ -429,7 +429,8 @@ export class Mochi3d {
     }
     if (this.coat?.group.visible) {
       if (this.withoutBody) this.coat.group.visible = false
-      else this.coat.update(mt.geo, color, mat.opacity, this.pxByUnit, furLevel)
+      // the beads take the same eye color as the other styles (`paper` is already the theme's eye color)
+      else this.coat.update(mt.geo, color, paper, mat.opacity, this.pxByUnit, furLevel)
     }
   }
 

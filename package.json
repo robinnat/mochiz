@@ -1,6 +1,6 @@
 {
   "name": "mochiz-world",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Mochiz: animated avatars for the web. A <mochi-bot> Web Component that draws a Mochi in real 3D (Soft, Flat, Pixel, Plush), with 22 shapes, 7 moods, reactions to touch and 22 accessories. No framework needed.",
   "license": "MIT",
   "author": "SYGEN SAS",

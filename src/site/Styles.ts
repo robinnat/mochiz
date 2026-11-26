@@ -38,7 +38,7 @@ const STEPS: { id: RenderStyleId; name: string; code: string; text: string; back
     id: 'plush',
     name: 'Plush',
     code: 'render-style="plush"',
-    text: 'The Soft body in a coat of long, dense fur, with dark bead eyes pressed into it. A soft toy. It asks more of the graphics card: best with a few Mochiz on screen.',
+    text: 'The Soft body in a coat of long, dense fur, with glossy bead eyes pressed into it. A soft toy. It asks more of the graphics card: best with a few Mochiz on screen.',
     background: 'var(--p-ciel)'
   }
 ]

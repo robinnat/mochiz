@@ -118,3 +118,11 @@ export function rgbOf(hex: string): Rgb {
   const v = parseInt(hex.slice(1, 7), 16)
   return [(v >> 16) & 255, (v >> 8) & 255, v & 255]
 }
+
+/**
+ * Color of the Plush bead eyes, 0..1 for the shader: the theme's eye color as is (`eyeColor` in `theme.ts`, white in
+ * light, black in dark). Plush follows the same rule as the other styles; only the shading of the bead is its own.
+ */
+export function beadInk(eye: string): [number, number, number] {
+  return rgbOf(eye).map((v) => v / 255) as [number, number, number]
+}

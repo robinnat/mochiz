@@ -7,11 +7,11 @@ Mochiz offers four styles, all in REAL 3D (Three.js, loaded on demand, one share
 | **Soft** (default) | `3d` | soft material: smooth shading, a soft light from the top left and glows, computed in the shader, in camera space; no shine spot |
 | **Flat** | `flat3d` | `toon`: three clean tones |
 | **Pixel** | `pixel3d` | rendered at low resolution (the `pixel` grid), reduced to a short palette (3 body tones, accessory tones, white eyes), a built-in 1 px outline (part of the Pixel look, not an option), scaled up with `image-rendering: pixelated` (`src/ui/3d/pixel3d.ts`) |
-| **Plush** | `plush` | the Soft body in a coat of long, dense fur, with dark bead eyes pressed into it (`src/ui/3d/fur.ts`, `furCoat.ts`); see [Plush](#plush-a-coat-of-fur) below |
+| **Plush** | `plush` | the Soft body in a coat of long, dense fur, with glossy bead eyes pressed into it (`src/ui/3d/fur.ts`, `furCoat.ts`); see [Plush](#plush-a-coat-of-fur) below |
 
 **No 2D.** The old SVG drawings are gone from the code: no 2D fallback, no 2D export. An unknown `render-style` value falls back to the current setting. Without WebGL, a short message replaces the Mochi (`no3d` event). The still images of the website (`public/renders/`) are made from the 3D too, with `tools/renders.html`.
 
-**Eyes.** In the light theme the eyes are ALWAYS white, for every color (yellow `#ffd60a` and lime `#b6e800` included), with no outline: only the normal 3D shading of the eye remains. In the dark theme they are black. Plush is the one exception: its eyes are dark glossy beads in both themes, like the eyes of a soft toy.
+**Eyes.** In the light theme the eyes are ALWAYS white, for every color (yellow `#ffd60a` and lime `#b6e800` included), with no outline: only the normal 3D shading of the eye remains. In the dark theme they are black. Plush follows the same rule: its eyes are glossy beads pressed into the fur, like the eyes of a soft toy, white in the light theme and black in the dark one.
 
 ## Shading all around (`src/ui/3d/rim.ts`)
 
@@ -33,7 +33,7 @@ Plush dresses the Soft body in a coat of fur. The technique is the "fluffy" mate
 - **Color** (`furDye.ts`): each body color becomes a ramp from the darkest recess to the brightest tip, so every color keeps its hue through the shading.
 - **Detail follows size and load** (`fur.ts`): a small Mochi draws fewer shells and part of its strands, each one wider, so the coat covers the same. When drawing all the Mochiz of the page costs more than 7 ms per frame, the coats get lighter (about 60 %, then about a third of the full coat), before the frame rate has to halve. A still image (`frozen-at`) always gets the full coat.
 
-**Color.** The bead eyes are dark in both themes: on a very dark body (the default color, `ink`) they do not show, so give a Plush Mochi a lighter color.
+**Color.** The bead eyes take the eye color of the theme, like every style: white in light, black in dark. Around each bead the pressed fur makes a shadow, and the bead keeps a small shine, so the eyes read on every body color, light ones (`cream`, white) included. In the dark theme a very dark body (the default color, `ink`) is lightened just enough for the black beads to show, as in the other styles.
 
 **Cost.** Plush asks about twice as much of the graphics card as Soft. It is best with a few Mochiz on screen (an avatar, a mascot, a hero image). For a page with many animated Mochiz, or for older phones, prefer Soft, Flat or Pixel. Accessories, the ground shadow, moods and reactions work as in Soft.
 

@@ -35,7 +35,7 @@ import { SHAPES, COLORS } from 'mochiz-world/catalog'
 Load the standalone build (Three.js included) from a CDN, with a script tag:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.3.0/dist-lib/standalone/mochiz.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.3.1/dist-lib/standalone/mochiz.js"></script>
 ```
 
 ### Without npm: build it from the repository
@@ -61,7 +61,7 @@ The examples below load the library from the CDN in plain HTML and with `import 
 ## Your first Mochi
 
 ```html live
-<script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.3.0/dist-lib/standalone/mochiz.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/mochiz-world@0.3.1/dist-lib/standalone/mochiz.js"></script>
 
 <mochi-bot shape="star" color="blue" mood="idle" size="200" wave></mochi-bot>
 ```
@@ -217,11 +217,11 @@ There are four styles, all in real 3D. The model is the same, only the drawing c
 <!-- Flat: two or three flat tones -->
 <mochi-bot render-style="flat3d"></mochi-bot>
 
-<!-- Plush: a coat of fur and dark bead eyes (give it a color: on the default ink, the eyes do not show) -->
+<!-- Plush: a coat of fur and glossy bead eyes (white in light, black in dark, like every style) -->
 <mochi-bot render-style="plush" color="sky"></mochi-bot>
 ```
 
-Plush asks about twice as much of the graphics card as Soft: use it for a few Mochiz on screen, not for a crowd. Its eyes stay dark in both themes, so pick a body color that is not too dark (the default color, `ink`, hides them). How it is drawn: [Styles](styles.md#plush-a-coat-of-fur).
+Plush asks about twice as much of the graphics card as Soft: use it for a few Mochiz on screen, not for a crowd. Its bead eyes follow the theme like the eyes of every style: white in light, black in dark. How it is drawn: [Styles](styles.md#plush-a-coat-of-fur).
 
 A few more options change the look. `yaw` and `shadow` work in every style; `shading` only in Flat and Pixel (Soft and Plush are always shaded):
 

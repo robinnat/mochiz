@@ -5,6 +5,16 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-26
+
+### Fixed
+
+- **Plush eyes follow the theme**, like the eyes of every other style: white bead eyes in the light theme, black in
+  the dark one (they were dark in both themes). The beads keep their look: pressed into the fur, with a small shine.
+  There is no dark line around a bead: the sunk look comes from a soft shadow of the fur around it, in the fur's own
+  color. On the default color (`ink`), Plush eyes now show in the light theme; in the dark theme the body is
+  lightened just enough for the black beads, as in the other styles.
+
 ## [0.3.0] - 2026-11-25
 
 ### Added (Plush)
@@ -428,7 +438,8 @@ fixed, and the measurement is in the commit that fixes it.
 - `StateDef.hint`: 15 hardcoded French strings nothing read, inside a type meant to
   become public.
 
-[unreleased]: https://github.com/robinnat/mochiz/compare/v0.3.0...HEAD
+[unreleased]: https://github.com/robinnat/mochiz/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/robinnat/mochiz/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/robinnat/mochiz/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/robinnat/mochiz/releases/tag/v0.2.1
 [0.2.0]: https://github.com/robinnat/mochiz/releases/tag/v0.2.0
