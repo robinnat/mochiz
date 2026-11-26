@@ -107,13 +107,15 @@ describe('the changelog page (/docs?page=changelog)', () => {
 
   it('shows every version of CHANGELOG.md, each heading linked to its release when the file gives one', () => {
     const versions = [...CHANGELOG.matchAll(/^## \[(\d+\.\d+\.\d+)\]/gm)].map((m) => m[1]!)
-    expect(versions.length).toBeGreaterThanOrEqual(5)
+    expect(versions.length).toBeGreaterThanOrEqual(4)
     const headings = blocks.filter((b): b is Extract<Block, { t: 'heading' }> => b.t === 'heading' && b.level === 2)
     for (const v of versions) {
       const h = headings.find((x) => x.text.startsWith(`[${v}]`))
       expect(h, v).toBeDefined()
       const def = CHANGELOG.match(new RegExp(`^\\[${v.replace(/\./g, '\\.')}\\]:\\s+(\\S+)`, 'm'))?.[1]
-      if (def) expect(links(parseInline(h!.text)).map((l) => l.href), v).toEqual([def])
+      // a version in brackets is a link: without a `[x.y.z]: url` line it would show its brackets as text
+      expect(def, `${v} has a link definition (or no brackets)`).toBeDefined()
+      expect(links(parseInline(h!.text)).map((l) => l.href), v).toEqual([def])
     }
   })
 

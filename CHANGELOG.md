@@ -159,7 +159,7 @@ Everything is in English. There are no aliases for the old ids, except the pixel
 - On the website: the `/app` editor (with its exports) and the `/lab` page. `/app`, `/lab` and `/labo` redirect to
   the home page.
 
-## [0.1.1] - 2026-08-17
+## 0.1.1 - 2026-08-17
 
 Before the public repository: a version of the animation editor (removed in 0.2.0). It has no GitHub release. First
 batch of post-launch fixes. Every entry was reproduced and measured before being fixed, and the measurement is in the
